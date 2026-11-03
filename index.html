@@ -272,6 +272,62 @@ form.up{background:var(--surface);border:1px solid var(--line);border-radius:14p
 .roles div{display:flex;align-items:center;gap:10px;font-size:16px}
 .roles .r{margin-left:auto;font-weight:700}
 .roles .spy{color:var(--accent)}
+
+.ghome{display:grid;gap:12px}
+.gpick{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:16px;cursor:pointer;font:inherit;color:var(--ink)}
+.gpick h3{margin:0 0 4px;font-size:20px}
+.gpick p{margin:0;color:var(--muted);font-size:15px}
+.gpick .live{display:inline-block;margin-top:8px;font-size:13px;font-weight:700;color:var(--good);background:var(--good-soft);border-radius:999px;padding:2px 10px}
+.mebar{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 14px;margin-bottom:14px}
+.mebar select{width:auto;flex:1}
+.bigq{font:700 26px/1.4 var(--f-display);margin:6px 0 4px;text-wrap:balance}
+.yn{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.yn button{padding:18px 0;font-size:19px;font-weight:700;border-radius:14px;border:1px solid var(--line);cursor:pointer;font-family:var(--f-body)}
+.yn .y{background:var(--good-soft);color:var(--good)} .yn .n{background:var(--accent-soft);color:var(--accent)}
+.yn button[aria-pressed="true"]{outline:3px solid var(--ink)}
+.lives{display:grid;gap:6px}
+.lives div{display:flex;align-items:center;gap:10px;font-size:16px}
+.lives .h{margin-left:auto;letter-spacing:2px;color:var(--accent);font-size:15px}
+.lives .dead{opacity:.4}
+.tally{display:grid;gap:6px;margin-top:10px}
+.tally div{display:flex;align-items:center;gap:10px;font-size:16px}
+.tally .bar2{flex:1;height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.tally .bar2 i{display:block;height:100%;background:var(--accent)}
+.cands{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+
+/* Game view: larger type and touch targets */
+.gpick{display:flex;gap:16px;align-items:center}
+.gicon{flex:0 0 auto;width:72px;height:72px;border-radius:18px;background:var(--accent-soft);display:grid;place-items:center}
+.gicon svg{width:48px;height:48px;fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.gtxt{min-width:0}
+.gpick h3{font-size:24px}
+.gpick p{font-size:16px}
+main[data-view="game"] h2{font-size:30px}
+main[data-view="game"] .bigq{font-size:34px;line-height:1.35}
+main[data-view="game"] .result{font-size:36px}
+main[data-view="game"] .label{font-size:15px}
+main[data-view="game"] .av{width:42px;height:42px;font-size:15px}
+main[data-view="game"] .pbtn{font-size:20px;padding:14px 12px;gap:10px}
+main[data-view="game"] .pbtn small{font-size:14px}
+main[data-view="game"] .order span{font-size:19px;padding:4px 14px 4px 4px}
+main[data-view="game"] .order span .av{width:34px;height:34px;font-size:13px}
+main[data-view="game"] .tally div,main[data-view="game"] .lives div,main[data-view="game"] .roles div{font-size:20px}
+main[data-view="game"] .tally .bar2{height:12px;border-radius:6px}
+main[data-view="game"] .lives .h{font-size:20px}
+main[data-view="game"] .yn button{font-size:26px;padding:24px 0}
+main[data-view="game"] .roles .r{font-size:20px}
+main[data-view="game"] .game-card p[style*="font-size:17px"]{font-size:22px!important}
+main[data-view="game"] .blk h3{font-size:22px}
+main[data-view="game"] .btn.primary{font-size:18px;padding:12px 20px}
+main[data-view="game"] .chip{font-size:17px}
+main[data-view="game"] .chip .av{width:32px;height:32px;font-size:12px}
+main[data-view="game"] .stepper button{width:48px;height:48px;font-size:24px}
+main[data-view="game"] .stepper b{font-size:28px}
+main[data-view="game"] input{font-size:20px;padding:12px}
+.reveal .who{font-size:22px}
+.reveal .word{font-size:72px}
+.reveal .hint{font-size:18px}
+.reveal .btn{font-size:20px;padding:14px 32px}
 </style>
 </head>
 <body>
@@ -566,6 +622,7 @@ async function loadRates(){
 function render(){
   const main=document.getElementById("main");
   if(S.view!=="plan"&&MAP){MAP.remove();MAP=null;meMarker=null;meCircle=null}
+  main.dataset.view=S.view;
   main.innerHTML={plan:viewPlan,drive:viewDrive,photos:viewPhotos,game:viewGame,ledger:viewLedger,settle:viewSettle}[S.view]();
   if(S.view==="plan")setTimeout(initMap,0);
   renderTabs();
@@ -573,7 +630,7 @@ function render(){
 function route(){
   const h=(location.hash||"").slice(1);
   S.view=TABS.some(t=>t[0]===h)?h:"plan";
-  S.pendingDelete=null;S.pendingPhoto=null;render();window.scrollTo(0,0);if(S.view==="photos")refreshPhotos();
+  S.pendingDelete=null;S.pendingPhoto=null;render();window.scrollTo(0,0);if(S.view==="photos")refreshPhotos();if(S.view==="game"){gGet("spy");gGet("nhie");gGet("mlt");gPoll()}
 }
 window.addEventListener("hashchange",route);
 
@@ -689,8 +746,8 @@ function gOrder(){const a=gAlive();const st=Math.floor(Math.random()*a.length);G
 function gCheck(){const a=gAlive();const bad=a.filter(n=>G.roles[n]!=="civ").length;const good=a.length-bad;
   if(bad===0)return "civ";if(bad>=good)return "spy";return null}
 const ROLE_NAME={civ:"平民",spy:"間諜",blank:"白板"};
-function viewGame(){
-  if(G.phase==="setup")return `<section class="view"><h2>誰是間諜</h2><p class="sub">一支手機輪流傳，看完自己的詞再交給下一位。</p>
+function viewSpyLocal(){
+  if(G.phase==="setup")return `<section class="view"><button class="btn mini" type="button" data-gview="home">← 遊戲選單</button><h2 style="margin-top:10px">誰是間諜（一支手機）</h2><p class="sub">一支手機輪流傳，看完自己的詞再交給下一位。</p>
   <div class="game-card"><div class="label" style="margin-bottom:8px">誰要玩（${G.players.length} 人）</div>
     <div class="chips">${NAMES.map(n=>`<button type="button" class="chip" data-gp="${n}" aria-pressed="${G.players.includes(n)}">${av(n)}${n}</button>`).join("")}</div></div>
   <div class="game-card"><div class="label" style="margin-bottom:8px">間諜人數</div>
@@ -729,7 +786,7 @@ function gReveal(n){
   });
 }
 document.addEventListener("click",e=>{
-  if(S.view!=="game")return;
+  if(S.view!=="game"||S.gview!=="spylocal")return;
   const t=e.target.closest("[data-gp],[data-gs],[data-gb],[data-gshow],[data-gvote],#gGo,#gBegin,#gReset,#gOut,#gEnd,#gAgain");if(!t)return;
   if(t.dataset.gp){const n=t.dataset.gp;G.players=G.players.includes(n)?G.players.filter(x=>x!==n):NAMES.filter(x=>G.players.includes(x)||x===n)}
   else if(t.dataset.gs){G.spies=Math.max(1,Math.min(3,G.spies+ +t.dataset.gs));ls.set("ise.g.spies",G.spies)}
@@ -742,6 +799,219 @@ document.addEventListener("click",e=>{
   else if(t.id==="gOut"){G.out.push(G.picked);G.lastOut=G.picked;G.picked=null;const w=gCheck();if(w){G.winner=w;G.phase="end"}else{G.round++;gOrder()}}
   else if(t.id==="gEnd"){G.winner=null;G.phase="end"}
   render();
+});
+
+
+/* ---------- Multiplayer games (each phone, synced through the shared ledger backend) ---------- */
+S.gview="home";S.spy=null;S.nhie=null;S.spyCfg={mode:"random",word:"",cands:[],spyWord:"",host:true,players:[...NAMES],spies:2,blank:false,loading:false};S.nhieCfg={players:[...NAMES],lives:5};S.gpendOut=null;
+const NHIE_PROMPTS=["我有去過北海道","我有在日本開過車","我有坐過商務艙","我有吃過河豚","我有在國外迷路過","我有看過日出","我有泡過露天溫泉","我有穿過和服或浴衣",
+"我有坐過新幹線","我有在飛機上睡過整趟","我有去過迪士尼","我有自己一個人出國旅行","我有爬過百岳","我有潛水過","我有滑過雪","我有跑過馬拉松",
+"我有養過貓","我有養過狗","我有在 KTV 唱到天亮","我有錯過班機","我有護照過期才發現","我有在便利商店買過整晚的宵夜","我有抽過御守","我有求過籤",
+"我有在神社許過願","我有餵過奈良的鹿","我有被鹿追過","我有在居酒屋喝到最後一班車","我有一次買超過十盒伴手禮","我有在旅行中弄丟東西","我有坐過夜行巴士","我有吃過米其林餐廳",
+"我有在海邊過夜","我有看過極光","我有騎過重機","我有考過潛水證照","我有在國外生病看醫生","我有被航空公司升等","我有忘記帶護照出門","我有連續加班超過 12 小時",
+"我有在會議中睡著","我有在公司過夜","我有寄錯過 email 給主管","我有穿睡衣出門","我有在路上被認錯人","我有學過樂器","我有上過電視","我有參加過選秀或比賽",
+"我有自己做過蛋糕","我有在一天內喝超過五杯咖啡","我有搭過遊輪","我有去過歐洲","我有去過美國","我有住過膠囊旅館","我有吃過生雞蛋拌飯","我有買過 Labubu",
+"我有在演唱會搖滾區","我有通宵追劇","我有在日本被店員講英文","我有開車被開過罰單"];
+async function gGet(kind){if(!API)return;try{const me=ls.get("ise.me","Bill");const r=await fetch(API+(API.includes("?")?"&":"?")+"type="+kind+"&me="+encodeURIComponent(me)+"&t="+Date.now());const j=await r.json();if(j.ok){if(kind==="spy")S.spy=j.game;else if(kind==="mlt")S.mlt=j.game;else S.nhie=j.game;gRender()}}catch(e){}}
+async function gPost(body){if(!API)return null;try{body.me=ls.get("ise.me","Bill");const j=await apiPost(body);if(j&&j.game){if(/^spy_/.test(body.action))S.spy=j.game;else if(/^mlt_/.test(body.action))S.mlt=j.game;else S.nhie=j.game}gRender();return j}catch(e){alertBar("連線失敗，請再按一次");return null}}
+function alertBar(t){const el=document.getElementById("gMsg");if(el){el.textContent=t;el.className="status err"}}
+function gRender(){if(S.view!=="game")return;const ae=document.activeElement;if(ae&&ae.tagName==="INPUT"&&ae.closest("main"))return;if(document.querySelector(".reveal"))return;render()}
+let gTimer=null;
+function gPoll(){clearInterval(gTimer);gTimer=setInterval(()=>{if(S.view!=="game"||document.visibilityState!=="visible")return;if(S.gview==="spy")gGet("spy");else if(S.gview==="nhie")gGet("nhie");else if(S.gview==="mlt")gGet("mlt");else if(S.gview==="home"){gGet("spy");gGet("nhie");gGet("mlt")}},3000)}
+function meBar(){const me=ls.get("ise.me","Bill");return `<div class="mebar"><span>我是</span><select id="gMe">${NAMES.map(n=>`<option ${n===me?"selected":""}>${n}</option>`).join("")}</select></div>`}
+function viewGame(){
+  if(S.gview==="spylocal")return viewSpyLocal();
+  if(!API)return `<section class="view"><h2>遊戲</h2><p class="status err">還沒設定共用帳本，只能用一支手機玩。</p><button class="btn primary" type="button" data-gview="spylocal">誰是間諜（一支手機）</button></section>`;
+  if(S.gview==="spy")return viewSpy();
+  if(S.gview==="nhie")return viewNhie();
+  if(S.gview==="mlt")return viewMlt();
+  const ml=S.mlt&&S.mlt.phase&&S.mlt.phase!=="none"&&S.mlt.phase!=="end";
+  const sl=S.spy&&S.spy.phase&&S.spy.phase!=="none"&&S.spy.phase!=="end",nl=S.nhie&&S.nhie.phase&&S.nhie.phase!=="none"&&S.nhie.phase!=="end";
+  return `<section class="view"><h2>遊戲</h2><p class="sub">每個人用自己的手機玩，畫面會自動同步。先選好「我是」誰。</p>${meBar()}
+  <div class="ghome">
+    <button class="gpick" type="button" data-gview="spy"><span class="gicon"><svg viewBox="0 0 48 48"><circle cx="21" cy="21" r="11"/><path d="M29 29l10 10"/><path d="M16 21h10"/></svg></span><span class="gtxt"><h3>誰是間諜</h3><p>大家拿到同一個詞，間諜拿到相近的詞。輪流描述、投票抓出間諜。</p>${sl?'<span class="live">進行中，點進去加入</span>':""}</span></button>
+    <button class="gpick" type="button" data-gview="nhie"><span class="gicon"><svg viewBox="0 0 48 48"><path d="M16 26V12a3 3 0 016 0v12M22 22V9a3 3 0 016 0v13M28 22V11a3 3 0 016 0v15c0 8-5 13-12 13s-11-4-13-9l-3-7a3 3 0 015-3l3 4"/></svg></span><span class="gtxt"><h3>我有你沒有</h3><p>輪流說一件「我有做過」的事，沒做過的人扣一條命，最後活下來的人贏。</p>${nl?'<span class="live">進行中，點進去加入</span>':""}</span></button>
+    <button class="gpick" type="button" data-gview="mlt"><span class="gicon"><svg viewBox="0 0 48 48"><circle cx="14" cy="16" r="5"/><circle cx="34" cy="16" r="5"/><circle cx="24" cy="12" r="5"/><path d="M5 38c1-7 5-11 9-11M43 38c-1-7-5-11-9-11M14 40c1-8 5-12 10-12s9 4 10 12"/></svg></span><span class="gtxt"><h3>誰最有可能</h3><p>每題「誰最有可能……」，大家投給最符合的人，看誰最常被選中。</p>${ml?'<span class="live">進行中，點進去加入</span>':""}</span></button>
+    <button class="btn" type="button" data-gview="spylocal">沒網路時：誰是間諜（一支手機輪流）</button>
+  </div></section>`;
+}
+function back(){return `<button class="btn mini" type="button" data-gview="home">← 遊戲選單</button>`}
+/* ----- 誰是間諜 ----- */
+function viewSpy(){
+  const g=S.spy,me=ls.get("ise.me","Bill"),c=S.spyCfg;
+  if(!g)return `<section class="view">${back()}<p class="status" style="margin-top:12px">載入中…</p></section>`;
+  if(g.phase==="none"||g.phase==="end"&&S.spyNew){
+    const pl=c.players;
+    return `<section class="view">${back()}<h2 style="margin-top:10px">誰是間諜：開新局</h2>${meBar()}
+    <div class="game-card"><div class="label" style="margin-bottom:8px">誰要玩（${pl.length} 人）</div><div class="chips">${NAMES.map(n=>`<button type="button" class="chip" data-sp="${n}" aria-pressed="${pl.includes(n)}" >${av(n)}${n}</button>`).join("")}</div>
+      <div class="label" style="margin:14px 0 8px">間諜人數</div><div class="stepper"><button type="button" data-ss="-1">−</button><b>${c.spies}</b><button type="button" data-ss="1">＋</button></div>
+      <div class="label" style="margin:14px 0 8px">加一個白板</div><div class="chips"><button type="button" class="chip cat" data-sb="0" aria-pressed="${!c.blank}">不要</button><button type="button" class="chip cat" data-sb="1" aria-pressed="${c.blank}">要</button></div></div>
+    <p class="status" id="gMsg"></p>
+    <button class="btn primary" type="button" id="spyGo" style="width:100%;padding:14px;font-size:17px">開始，發詞到每個人的手機</button></section>`;
+  }
+  const inGame=g.players.includes(me),isHost=g.host===me,alive=g.players.filter(n=>!g.out.includes(n));
+  const head=`${back()}<h2 style="margin-top:10px">誰是間諜${g.phase==="play"?`．第 ${g.round} 輪`:""}</h2>${meBar()}${!inGame&&!isHost?`<p class="status err">你這局沒有參加，可以在旁邊看。</p>`:""}${isHost&&g.pair?`<div class="blk tip" style="margin-bottom:12px"><span class="tag">主持人才看得到</span><h3>平民：${esc(g.pair[0])}　間諜：${esc(g.pair[1])}</h3></div>`:""}<p class="status" id="gMsg"></p>`;
+  if(g.phase==="deal"){const left=g.players.filter(n=>!g.seen[n]);
+    return `<section class="view">${head}
+    ${inGame?`<button class="btn primary" type="button" id="spyShow" style="width:100%;padding:16px;font-size:18px">${g.seen[me]?"再看一次我的詞":"看我的詞"}</button>`:""}
+    <div class="game-card" style="margin-top:14px"><div class="label" style="margin-bottom:8px">${left.length?`等 ${left.length} 人看詞`:"大家都看完了"}</div><div class="order">${g.players.map(n=>`<span style="${g.seen[n]?"":"opacity:.45"}">${av(n)}${esc(n)}${g.seen[n]?" ✓":""}</span>`).join("")}</div>
+    ${left.length?`<button class="btn mini" type="button" id="spyForce" style="margin-top:10px">不等了，直接開始</button>`:""}</div></section>`}
+  if(g.phase==="play"){
+    const cnt={};Object.values(g.votes||{}).forEach(t=>cnt[t]=(cnt[t]||0)+1);const voted=Object.keys(g.votes||{}).length;const mx=Math.max(1,...Object.values(cnt));
+    const sorted=alive.slice().sort((a,b)=>(cnt[b]||0)-(cnt[a]||0));
+    return `<section class="view">${head}
+    ${g.lastOut?`<div class="blk ${g.lastOut.role==="civ"?"stay":"food"}" style="margin-bottom:12px"><span class="tag">上一輪</span><h3>${esc(g.lastOut.name)} 出局，是${ROLE_NAME[g.lastOut.role]}</h3></div>`:""}
+    ${inGame&&!g.out.includes(me)?`<button class="btn" type="button" id="spyShow">偷看我的詞</button>`:""}
+    <div class="game-card" style="margin-top:12px"><div class="label">描述順序（每人一句）</div><div class="order">${g.order.map((n,i)=>`<span>${av(n)}${i+1}. ${esc(n)}</span>`).join("")}</div></div>
+    ${alive.includes(me)?`<div class="game-card"><div class="label" style="margin-bottom:8px">我投給誰</div><div class="plist">${alive.filter(n=>n!==me).map(n=>`<button type="button" class="pbtn" data-svote="${n}" ${g.votes[me]===n?'style="border-color:var(--accent);background:var(--accent-soft)"':""}>${av(n)}${n}${g.votes[me]===n?"<small>已投</small>":""}</button>`).join("")}</div></div>`:""}
+    <div class="game-card"><div class="label">開票（${voted}/${alive.length} 人已投）</div>
+      <div class="tally">${sorted.map(n=>`<div>${av(n)}<span style="min-width:64px">${esc(n)}</span><span class="bar2"><i style="width:${(cnt[n]||0)/mx*100}%"></i></span><b class="num">${cnt[n]||0}</b><button class="btn mini" type="button" data-sout="${n}" ${S.gpendOut===n?'style="background:var(--accent);color:#fff;border-color:var(--accent)"':""}>${S.gpendOut===n?"確定淘汰":"淘汰"}</button></div>`).join("")}</div>
+      <p class="note" style="margin:8px 0 0">大家投完後，由任何一人按得票最高者的「淘汰」。</p></div>
+    <button class="btn" type="button" id="spyEnd">結束並公布答案</button></section>`}
+  /* end */
+  return `<section class="view">${head}
+  <div class="game-card"><p class="result">${g.winner==="civ"?"平民獲勝！":g.winner==="spy"?"間諜獲勝！":"答案揭曉"}</p>
+    ${g.pair?`<p style="margin:0;font-size:17px">平民的詞：<b>${esc(g.pair[0])}</b>　間諜的詞：<b>${esc(g.pair[1])}</b></p>`:""}
+    <div class="roles">${g.players.map(n=>`<div>${av(n)}${esc(n)}${g.out.includes(n)?'<small style="color:var(--muted)">（出局）</small>':""}<span class="r ${g.roles&&g.roles[n]!=="civ"?"spy":""}">${g.roles?ROLE_NAME[g.roles[n]]:""}</span></div>`).join("")}</div></div>
+  <button class="btn primary" type="button" id="spyAgain">開新的一局</button></section>`;
+}
+function spyReveal(){
+  const g=S.spy,me=ls.get("ise.me","Bill");const w=g.you?g.you.word:null;
+  const ov=document.createElement("div");ov.className="reveal";
+  ov.innerHTML=`<div class="who">${esc(me)}，確定旁邊沒人在看？</div><button class="btn primary" type="button" id="rv1">顯示我的詞</button>`;
+  document.body.appendChild(ov);
+  ov.addEventListener("click",e=>{
+    if(e.target.id==="rv1")ov.innerHTML=`<div class="who">${esc(me)} 的詞</div><div class="word">${w?esc(w):"（空白）"}</div><div class="hint">${w?"記住後按下面的按鈕":"你是白板：聽別人描述，假裝自己知道"}</div><button class="btn primary" type="button" id="rv2">我記住了</button>`;
+    if(e.target.id==="rv2"){ov.remove();if(g.phase==="deal"&&!g.seen[me])gPost({action:"spy_seen"});else render()}
+  });
+}
+async function findSimilar(word){
+  const c=S.spyCfg;c.loading=true;c.cands=[];render();
+  const out=new Set();
+  PAIRS.forEach(([a,b])=>{if(a===word)out.add(b);if(b===word)out.add(a)});
+  try{const r=await fetch("https://zh.wikipedia.org/w/api.php?action=query&list=search&srlimit=30&format=json&origin=*&variant=zh-tw&srsearch="+encodeURIComponent("morelike:"+word));const j=await r.json();
+    (j.query&&j.query.search||[]).map(x=>x.title).filter(t=>t.length>=2&&t.length<=5&&!/[（()：:·・\-0-9A-Za-z列表]/.test(t)&&!t.includes(word)&&!word.includes(t)&&!/(作用|主義|理論|事件|化學|法$|學$|症$|病$|不耐|技術|工業|系統)/.test(t)).forEach(t=>out.add(t));}
+  catch(e){}
+  try{const r=await fetch("https://zh.wikipedia.org/w/api.php?action=query&list=search&srlimit=20&format=json&origin=*&variant=zh-tw&srsearch="+encodeURIComponent(word));const j=await r.json();
+    (j.query&&j.query.search||[]).map(x=>x.title).filter(t=>t.length>=2&&t.length<=4&&!/[（()：:·・\-0-9A-Za-z列表]/.test(t)&&!t.includes(word)&&!word.includes(t)&&!/(作用|主義|理論|事件|法$|學$|症$|病$|不耐|技術|工業|系統)/.test(t)).forEach(t=>out.add(t));}
+  catch(e){}
+  c.cands=[...out].slice(0,12);c.loading=false;
+  if(!c.spyWord&&c.cands.length)c.spyWord=c.cands[0];
+  render();
+  if(!c.cands.length)alertBar("網路上找不到相近的詞，請自己輸入間諜的詞");
+}
+/* ----- 我有你沒有 ----- */
+function hearts(n,max){return "♥".repeat(n)+'<span style="opacity:.25">'+"♥".repeat(Math.max(0,max-n))+"</span>"}
+function viewNhie(){
+  const g=S.nhie,me=ls.get("ise.me","Bill"),c=S.nhieCfg;
+  if(!g)return `<section class="view">${back()}<p class="status" style="margin-top:12px">載入中…</p></section>`;
+  if(g.phase==="none"||g.phase==="end"&&S.nhieNew)return `<section class="view">${back()}<h2 style="margin-top:10px">我有你沒有：開新局</h2>${meBar()}
+    <div class="game-card"><div class="label" style="margin-bottom:8px">誰要玩（${c.players.length} 人）</div><div class="chips">${NAMES.map(n=>`<button type="button" class="chip" data-np="${n}" aria-pressed="${c.players.includes(n)}">${av(n)}${n}</button>`).join("")}</div>
+    <div class="label" style="margin:14px 0 8px">每人幾條命</div><div class="stepper"><button type="button" data-nl="-1">−</button><b>${c.lives}</b><button type="button" data-nl="1">＋</button></div></div>
+    <div class="game-card"><div class="label" style="margin-bottom:6px">玩法</div><ul style="margin:0;padding-left:20px;font-size:15px;line-height:1.7"><li>輪到的人說一件「我有做過」的事</li><li>其他人在自己手機按「我也有」或「我沒有」</li><li>按「我沒有」的人扣一條命，命用完就出局，最後一人獲勝</li></ul></div>
+    <p class="status" id="gMsg"></p><button class="btn primary" type="button" id="nhieGo" style="width:100%;padding:14px;font-size:17px">開始</button></section>`;
+  const alive=g.players.filter(n=>g.lives[n]>0),inGame=g.players.includes(me);
+  const board=`<div class="game-card"><div class="label" style="margin-bottom:8px">剩下的命</div><div class="lives">${g.players.map(n=>`<div class="${g.lives[n]>0?"":"dead"}">${av(n)}${esc(n)}${n===g.speaker&&g.phase!=="end"?' <small style="color:var(--accent);font-weight:700">出題中</small>':""}<span class="h">${g.lives[n]>0?hearts(g.lives[n],g.start):"出局"}</span></div>`).join("")}</div></div>`;
+  const head=`${back()}<h2 style="margin-top:10px">我有你沒有${g.phase!=="end"?`．第 ${g.round} 題`:""}</h2>${meBar()}<p class="status" id="gMsg"></p>`;
+  if(g.phase==="pick"){
+    if(me===g.speaker)return `<section class="view">${head}<div class="game-card"><div class="label">換你出題</div><p class="bigq">說一件你做過、但別人可能沒做過的事</p>
+      <div class="field"><label for="nhieQ">我有……</label><input id="nhieQ" maxlength="60" placeholder="例：我有在日本開過車" value="${esc(S.nhieDraft||"")}"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" type="button" id="nhieRand">給我一題</button><button class="btn primary" type="button" id="nhieAsk">送出題目</button></div></div>${board}</section>`;
+    return `<section class="view">${head}<div class="game-card"><p class="bigq">等 ${esc(g.speaker)} 出題…</p><button class="btn mini" type="button" id="nhieSkip">跳過這位</button></div>${board}</section>`;}
+  if(g.phase==="ask"){const ans=g.answers||{};const left=alive.filter(n=>!ans[n]);
+    return `<section class="view">${head}<div class="game-card"><div class="label">${esc(g.speaker)} 說</div><p class="bigq">${esc(g.prompt)}</p>
+      ${alive.includes(me)&&me!==g.speaker?`<div class="yn"><button class="y" type="button" data-nans="1" aria-pressed="${ans[me]==="yes"}">我也有</button><button class="n" type="button" data-nans="0" aria-pressed="${ans[me]==="no"}">我沒有</button></div>`:""}
+      <div class="order" style="margin-top:12px">${alive.filter(n=>n!==g.speaker).map(n=>`<span style="${ans[n]?"":"opacity:.45"}">${av(n)}${esc(n)}${ans[n]?" ✓":""}</span>`).join("")}</div>
+      <button class="btn primary" type="button" id="nhieReveal" style="margin-top:12px">${left.length?`公布（還有 ${left.length} 人沒回答）`:"公布結果"}</button></div>${board}</section>`;}
+  if(g.phase==="reveal")return `<section class="view">${head}<div class="game-card"><div class="label">${esc(g.speaker)}：${esc(g.prompt||"（跳過）")}</div>
+      <p class="bigq">${g.lastLosers.length?`${g.lastLosers.map(esc).join("、")} 沒有，各扣 1 條命`:"大家都有，沒人扣命"}</p>
+      <button class="btn primary" type="button" id="nhieNext">下一位出題</button></div>${board}</section>`;
+  return `<section class="view">${head}<div class="game-card"><p class="result">${g.winner?esc(g.winner)+" 獲勝！":"遊戲結束"}</p></div>${board}<button class="btn primary" type="button" id="nhieAgain">開新的一局</button></section>`;
+}
+document.addEventListener("change",e=>{if(e.target.id==="gMe"){ls.set("ise.me",e.target.value);if(S.gview==="spy")gGet("spy");else render()}});
+document.addEventListener("input",e=>{if(e.target.id==="spyWord")S.spyCfg.word=e.target.value;if(e.target.id==="spyWord2")S.spyCfg.spyWord=e.target.value;if(e.target.id==="nhieQ")S.nhieDraft=e.target.value});
+document.addEventListener("click",async e=>{
+  if(S.view!=="game")return;
+  const t=e.target.closest("[data-gview],[data-sm],[data-cand],[data-shost],[data-sp],[data-ss],[data-sb],[data-svote],[data-sout],[data-np],[data-nl],[data-nans],#spyFind,#spyGo,#spyShow,#spyForce,#spyEnd,#spyAgain,#nhieGo,#nhieRand,#nhieAsk,#nhieSkip,#nhieReveal,#nhieNext,#nhieAgain");
+  if(!t)return;const c=S.spyCfg,n=S.nhieCfg,me=ls.get("ise.me","Bill");
+  if(t.dataset.gview){S.gview=t.dataset.gview;S.spyNew=false;S.nhieNew=false;S.mltNew=false;if(S.gview==="spy")gGet("spy");if(S.gview==="nhie")gGet("nhie");if(S.gview==="mlt")gGet("mlt");render();window.scrollTo(0,0);return}
+  if(S.gview==="spylocal"||S.gview==="mlt")return;
+  if(t.dataset.sm){c.mode=t.dataset.sm}
+  else if(t.dataset.cand){c.spyWord=t.dataset.cand}
+  else if(t.dataset.shost){c.host=t.dataset.shost==="1"}
+  else if(t.dataset.sp){const x=t.dataset.sp;c.players=c.players.includes(x)?c.players.filter(y=>y!==x):NAMES.filter(y=>c.players.includes(y)||y===x)}
+  else if(t.dataset.ss){c.spies=Math.max(1,Math.min(3,c.spies+ +t.dataset.ss))}
+  else if(t.dataset.sb){c.blank=t.dataset.sb==="1"}
+  else if(t.id==="spyFind"){const w=(document.getElementById("spyWord").value||"").trim();if(!w){alertBar("先輸入平民的詞");return}c.word=w;c.spyWord="";findSimilar(w);return}
+  else if(t.id==="spyGo"){
+    const pl=c.players;if(pl.length<3){alertBar("至少要 3 個人");return}
+    let pair;{const used=ls.get("ise.g.used",[]);let pool=PAIRS.map((_,i)=>i).filter(i=>!used.includes(i));if(!pool.length){pool=PAIRS.map((_,i)=>i);ls.set("ise.g.used",[])}const pi=pool[Math.floor(Math.random()*pool.length)];ls.set("ise.g.used",[...ls.get("ise.g.used",[]),pi]);pair=PAIRS[pi]}
+    S.spyNew=false;await gPost({action:"spy_new",players:pl,spies:c.spies,blank:c.blank,pair,host:"",custom:false});return}
+  else if(t.id==="spyShow"){spyReveal();return}
+  else if(t.id==="spyForce"){await gPost({action:"spy_start"});return}
+  else if(t.dataset.svote){const v=S.spy.votes[me]===t.dataset.svote?"":t.dataset.svote;await gPost({action:"spy_vote",target:v});return}
+  else if(t.dataset.sout){if(S.gpendOut!==t.dataset.sout){S.gpendOut=t.dataset.sout;render();return}S.gpendOut=null;await gPost({action:"spy_out",target:t.dataset.sout});return}
+  else if(t.id==="spyEnd"){await gPost({action:"spy_end"});return}
+  else if(t.id==="spyAgain"){S.spyNew=true}
+  else if(t.dataset.np){const x=t.dataset.np;n.players=n.players.includes(x)?n.players.filter(y=>y!==x):NAMES.filter(y=>n.players.includes(y)||y===x)}
+  else if(t.dataset.nl){n.lives=Math.max(1,Math.min(10,n.lives+ +t.dataset.nl))}
+  else if(t.id==="nhieGo"){if(n.players.length<2){alertBar("至少要 2 個人");return}S.nhieNew=false;await gPost({action:"nhie_new",players:n.players,lives:n.lives});return}
+  else if(t.id==="nhieRand"){S.nhieDraft=NHIE_PROMPTS[Math.floor(Math.random()*NHIE_PROMPTS.length)];document.getElementById("nhieQ").value=S.nhieDraft;return}
+  else if(t.id==="nhieAsk"){const q=(document.getElementById("nhieQ").value||"").trim();if(!q){alertBar("請先輸入題目，或按「給我一題」");return}S.nhieDraft="";await gPost({action:"nhie_prompt",prompt:q});return}
+  else if(t.dataset.nans){await gPost({action:"nhie_answer",has:t.dataset.nans==="1"});return}
+  else if(t.id==="nhieSkip"){await gPost({action:"nhie_skip"});return}
+  else if(t.id==="nhieReveal"){await gPost({action:"nhie_reveal"});return}
+  else if(t.id==="nhieNext"){await gPost({action:"nhie_next"});return}
+  else if(t.id==="nhieAgain"){S.nhieNew=true}
+  render();
+});
+
+
+/* ----- 誰最有可能 ----- */
+S.mlt=null;S.mltCfg={players:[...NAMES]};S.mltDraft="";
+const MLT_PROMPTS=["誰最有可能在旅行中弄丟東西","誰最有可能睡過頭","誰最有可能買最多伴手禮","誰最有可能在溫泉泡最久","誰最有可能第一個喝醉","誰最有可能迷路",
+"誰最有可能被奈良的鹿追","誰最有可能拍最多照片","誰最有可能錯過集合時間","誰最有可能半夜還在吃宵夜","誰最有可能在超市失心瘋","誰最有可能跟店員聊起來",
+"誰最有可能把護照忘在飯店","誰最有可能在車上睡著","誰最有可能堅持再逛一間","誰最有可能點到最奇怪的菜","誰最有可能帶最多行李","誰最有可能第一個說好累",
+"誰最有可能當上老闆","誰最有可能突然辭職去旅行","誰最有可能在會議中偷睡","誰最有可能記得每個人的生日","誰最有可能中樂透","誰最有可能變成網紅",
+"誰最有可能搬去日本住","誰最有可能在KTV霸佔麥克風","誰最有可能把行程排滿","誰最有可能臨時改行程","誰最有可能請大家喝飲料","誰最有可能被誤認成日本人",
+"誰最有可能在抽籤抽到大吉","誰最有可能在夫婦岩許願","誰最有可能開車開到不想下車","誰最有可能半夜傳訊息聊天","誰最有可能把錢包放在最奇怪的地方","誰最有可能第一個起床"];
+function viewMlt(){
+  const g=S.mlt,me=ls.get("ise.me","Bill"),c=S.mltCfg;
+  if(!g)return `<section class="view">${back()}<p class="status" style="margin-top:12px">載入中…</p></section>`;
+  if(g.phase==="none"||g.phase==="end"&&S.mltNew)return `<section class="view">${back()}<h2 style="margin-top:10px">誰最有可能：開新局</h2>${meBar()}
+    <div class="game-card"><div class="label" style="margin-bottom:8px">誰要玩（${c.players.length} 人）</div><div class="chips">${NAMES.map(n=>`<button type="button" class="chip" data-mp="${n}" aria-pressed="${c.players.includes(n)}">${av(n)}${n}</button>`).join("")}</div></div>
+    <div class="game-card"><div class="label" style="margin-bottom:6px">玩法</div><ul style="margin:0;padding-left:20px;font-size:15px;line-height:1.7"><li>任何人出一題「誰最有可能……」，或按「給我一題」</li><li>每個人在自己手機投給最符合的人（可以投自己）</li><li>公布後，最高票的人得一分，看誰最後最「有可能」</li></ul></div>
+    <p class="status" id="gMsg"></p><button class="btn primary" type="button" id="mltGo" style="width:100%;padding:14px;font-size:17px">開始</button></section>`;
+  const head=`${back()}<h2 style="margin-top:10px">誰最有可能${g.phase!=="end"?`．第 ${g.round} 題`:""}</h2>${meBar()}<p class="status" id="gMsg"></p>`;
+  const sc=g.players.slice().sort((a,b)=>(g.score[b]||0)-(g.score[a]||0));
+  const board=`<div class="game-card"><div class="label" style="margin-bottom:8px">累計得票王</div><div class="lives">${sc.map(n=>`<div>${av(n)}${esc(n)}<span class="h" style="color:var(--ink);letter-spacing:0"><b class="num">${g.score[n]||0}</b> 次</span></div>`).join("")}</div></div>`;
+  const ask=`<div class="game-card"><div class="label">出下一題</div><div class="field" style="margin-top:6px"><input id="mltQ" maxlength="60" placeholder="誰最有可能……" value="${esc(S.mltDraft)}"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" type="button" id="mltRand">給我一題</button><button class="btn primary" type="button" id="mltAsk">送出題目</button></div></div>`;
+  if(g.phase==="pick")return `<section class="view">${head}${ask}${board}</section>`;
+  if(g.phase==="vote"){const voted=Object.keys(g.votes||{});
+    return `<section class="view">${head}<div class="game-card"><p class="bigq">${esc(g.prompt)}</p>
+      ${g.players.includes(me)?`<div class="label" style="margin:10px 0 8px">我投給</div><div class="plist">${g.players.map(n=>`<button type="button" class="pbtn" data-mvote="${n}" ${g.votes[me]===n?'style="border-color:var(--accent);background:var(--accent-soft)"':""}>${av(n)}${n}${g.votes[me]===n?"<small>已投</small>":""}</button>`).join("")}</div>`:""}
+      <div class="order" style="margin-top:12px">${g.players.map(n=>`<span style="${voted.includes(n)?"":"opacity:.45"}">${av(n)}${esc(n)}${voted.includes(n)?" ✓":""}</span>`).join("")}</div>
+      <button class="btn primary" type="button" id="mltReveal" style="margin-top:12px">${voted.length<g.players.length?`公布（${voted.length}/${g.players.length} 人已投）`:"公布結果"}</button></div>${board}</section>`;}
+  if(g.phase==="reveal"){const mx=Math.max(1,...Object.values(g.counts||{}));const order=g.players.slice().sort((a,b)=>((g.counts||{})[b]||0)-((g.counts||{})[a]||0));
+    return `<section class="view">${head}<div class="game-card"><div class="label">${esc(g.prompt)}</div><p class="bigq">${g.top.length?g.top.map(esc).join("、")+(g.top.length>1?" 平手！":" 最有可能！"):"沒有人投票"}</p>
+      <div class="tally">${order.map(n=>`<div>${av(n)}<span style="min-width:64px">${esc(n)}</span><span class="bar2"><i style="width:${((g.counts||{})[n]||0)/mx*100}%"></i></span><b class="num">${(g.counts||{})[n]||0}</b></div>`).join("")}</div></div>
+      ${ask}${board}<button class="btn" type="button" id="mltEnd">結束遊戲</button></section>`;}
+  return `<section class="view">${head}<div class="game-card"><p class="result">${sc.length&&(g.score[sc[0]]||0)?esc(sc[0])+" 是最有可能的人！":"遊戲結束"}</p></div>${board}<button class="btn primary" type="button" id="mltAgain">開新的一局</button></section>`;
+}
+document.addEventListener("input",e=>{if(e.target.id==="mltQ")S.mltDraft=e.target.value});
+document.addEventListener("click",async e=>{
+  if(S.view!=="game"||S.gview!=="mlt")return;
+  const t=e.target.closest("[data-mp],[data-mvote],#mltGo,#mltRand,#mltAsk,#mltReveal,#mltEnd,#mltAgain");if(!t)return;
+  const c=S.mltCfg;
+  if(t.dataset.mp){const x=t.dataset.mp;c.players=c.players.includes(x)?c.players.filter(y=>y!==x):NAMES.filter(y=>c.players.includes(y)||y===x);render();return}
+  if(t.id==="mltGo"){if(c.players.length<3){alertBar("至少要 3 個人");return}S.mltNew=false;await gPost({action:"mlt_new",players:c.players});return}
+  if(t.id==="mltRand"){S.mltDraft=MLT_PROMPTS[Math.floor(Math.random()*MLT_PROMPTS.length)];document.getElementById("mltQ").value=S.mltDraft;return}
+  if(t.id==="mltAsk"){let q=(document.getElementById("mltQ").value||"").trim();if(!q){alertBar("請先輸入題目，或按「給我一題」");return}if(!/^誰/.test(q))q="誰最有可能"+q;S.mltDraft="";await gPost({action:"mlt_prompt",prompt:q});return}
+  if(t.dataset.mvote){await gPost({action:"mlt_vote",target:t.dataset.mvote});return}
+  if(t.id==="mltReveal"){await gPost({action:"mlt_reveal"});return}
+  if(t.id==="mltEnd"){await gPost({action:"mlt_end"});return}
+  if(t.id==="mltAgain"){S.mltNew=true;render()}
 });
 
 /* ---------- Day map ---------- */
