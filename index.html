@@ -14,6 +14,8 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="config.js"></script>
 <style>
 /* Layout: phone-first single column, sticky header + bottom tab bar; deck's vermilion + cool gray carried over */
@@ -168,7 +170,7 @@ input,select{font:17px var(--f-body);color:var(--ink);background:var(--bg);borde
 
 /* Tab bar */
 nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
-nav.tabs .in{max-width:620px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+nav.tabs .in{max-width:620px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr)}
 .tab{border:none;background:none;color:var(--muted);font:500 13px var(--f-body);padding:9px 0 10px;display:grid;justify-items:center;gap:3px;cursor:pointer;text-decoration:none}
 .tab svg{width:25px;height:25px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .tab[aria-current="page"]{color:var(--accent);font-weight:700}
@@ -233,6 +235,43 @@ form.up{background:var(--surface);border:1px solid var(--line);border-radius:14p
 .ph .del{border:none;background:none;color:var(--muted);font:13px var(--f-body);padding:2px 0;cursor:pointer}
 .ph .del.sure{color:var(--accent);font-weight:700}
 @media (max-width:420px){.pgrid{grid-template-columns:repeat(2,1fr)}}
+
+/* Day map */
+.mapwrap{position:relative;margin:0 0 14px}
+#map{height:320px;border-radius:14px;border:1px solid var(--line);background:#E8E6E1;z-index:0}
+.maptools{display:flex;gap:8px;align-items:center;justify-content:space-between;margin:8px 0 0;flex-wrap:wrap}
+.maptools .note{margin:0}
+.pin{width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;font:700 14px var(--f-num);display:grid;place-items:center;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+.pin.home{background:#3F7A5C}
+.me{width:18px;height:18px;border-radius:50%;background:#2F6FE0;border:3px solid #fff;box-shadow:0 0 0 2px rgba(47,111,224,.35),0 1px 4px rgba(0,0,0,.35)}
+.leaflet-popup-content{font:15px/1.5 var(--f-body);margin:12px 14px}
+.leaflet-popup-content b{display:block;font-size:16px}
+.leaflet-popup-content .t{color:var(--accent);font:700 14px var(--f-num)}
+.leaflet-popup-content small{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+.leaflet-popup-content a.go{display:inline-block;margin-top:8px;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:3px 12px;text-decoration:none;font-size:14px}
+/* Spy game */
+.game-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.stepper{display:flex;align-items:center;gap:12px}
+.stepper button{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--bg);font:700 20px var(--f-num);color:var(--ink);cursor:pointer}
+.stepper b{font:700 22px var(--f-num);min-width:24px;text-align:center}
+.plist{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.pbtn{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:10px;font:500 16px var(--f-body);color:var(--ink);cursor:pointer;text-align:left;min-width:0}
+.pbtn.done{opacity:.5}
+.pbtn.out{opacity:.4;text-decoration:line-through}
+.pbtn small{margin-left:auto;font-size:13px;color:var(--muted)}
+.reveal{position:fixed;inset:0;z-index:50;background:var(--ink);color:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px max(16px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));text-align:center}
+.reveal .who{font-size:18px;opacity:.8}
+.reveal .word{font:700 52px/1.2 var(--f-display);letter-spacing:.04em}
+.reveal .hint{font-size:15px;opacity:.7}
+.reveal .btn{font-size:17px;padding:12px 28px}
+.order{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}
+.order span{display:inline-flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:3px 12px 3px 3px;font-size:15px}
+.order span .av{width:26px;height:26px;font-size:11px}
+.result{font:700 26px var(--f-display);margin:0 0 6px}
+.roles{display:grid;gap:6px;margin-top:10px}
+.roles div{display:flex;align-items:center;gap:10px;font-size:16px}
+.roles .r{margin-left:auto;font-weight:700}
+.roles .spy{color:var(--accent)}
 </style>
 </head>
 <body>
@@ -265,8 +304,8 @@ form.up{background:var(--surface);border:1px solid var(--line);border-radius:14p
 <script>
 /* ---------- Data ---------- */
 const MEMBERS=[
-  {n:"Bill",c:"#5B7FA6"},{n:"Evelyn",c:"#A86A84"},{n:"Lucy",c:"#5E8C76"},{n:"Rachel",c:"#B47A55"},
-  {n:"Steven",c:"#6E72A8"},{n:"Zoey",c:"#9A8550"},{n:"Clear",c:"#4F8C93"},{n:"Hank",c:"#8A6FA0"}];
+  {n:"Hank",c:"#8A6FA0"},{n:"Clear",c:"#4F8C93"},{n:"Bill",c:"#5B7FA6"},{n:"Evelyn",c:"#A86A84"},
+  {n:"Lucy",c:"#5E8C76"},{n:"Rachel",c:"#B47A55"},{n:"Steven",c:"#6E72A8"},{n:"Zoey",c:"#9A8550"}];
 const NAMES=MEMBERS.map(m=>m.n);
 const colorOf=n=>(MEMBERS.find(m=>m.n===n)||{c:"#888"}).c;
 const av=n=>`<span class="av" style="background:${colorOf(n)}" aria-hidden="true">${esc(n.slice(0,2))}</span>`;
@@ -278,11 +317,11 @@ const DAYS=[
  {k:"DAY 2",date:"2026-11-27",md:"11/27",wd:"五",tag:"奈良 → 南伊勢",title:"奈良公園繞一圈，傍晚入住南伊勢",drive:"合計 約 4 小時 15 分",stay:"南伊勢 Airbnb",
   stops:[["08:00","臨空城取車（兩台），出發往奈良","約 1 小時 15 分","トヨタレンタカー りんくうタウン駅前店"],["09:30","東大寺大佛殿","停縣營大佛前停車場","奈良県営大仏前駐車場"],["11:00","水谷茶屋：紅葉拍照、烏龍麵午餐","8 人可能要排隊","水谷茶屋 奈良"],["12:00","春日大社，走回停車場","","春日大社"],["13:00","出發前往伊勢","約 2 小時 15 分",""],["15:15","伊勢市區超市採買 → Airbnb check in","約 45 分，16:30 前到","三重県度会郡南伊勢町木谷"]]},
  {k:"DAY 3",date:"2026-11-28",md:"11/28",wd:"六",tag:"神宮．Skyline．二見浦",title:"神宮參拜，Skyline 上山後去二見浦",drive:"合計 約 2 小時 40 分",stay:"南伊勢 Airbnb",
-  stops:[["08:30","Airbnb 出發","到外宮約 50 分",""],["09:30","外宮參拜 → 內宮","車程 10 分；週六停車場早滿","伊勢神宮 外宮"],["11:00","內宮，宇治橋、五十鈴川","","伊勢神宮 内宮"],["12:15","おかげ横丁午餐：伊勢烏龍麵、赤福、松阪牛串","","おかげ横丁"],["14:00","伊勢志摩 Skyline → 朝熊山頂展望台","足湯、俯瞰伊勢灣；收費 ¥1,270／台","朝熊山頂展望台"],["15:00","下山接二見浦．夫婦岩","約 15 分","夫婦岩"],["15:45","回 Airbnb","約 1 小時，日落前到",""]]},
+  stops:[["08:30","Airbnb 出發","到外宮約 50 分","三重県度会郡南伊勢町木谷"],["09:30","外宮參拜 → 內宮","車程 10 分；週六停車場早滿","伊勢神宮 外宮"],["11:00","內宮，宇治橋、五十鈴川","","伊勢神宮 内宮"],["12:15","おかげ横丁午餐：伊勢烏龍麵、赤福、松阪牛串","","おかげ横丁"],["14:00","伊勢志摩 Skyline → 朝熊山頂展望台","足湯、俯瞰伊勢灣；收費 ¥1,270／台","朝熊山頂展望台"],["15:00","下山接二見浦．夫婦岩","約 15 分","夫婦岩"],["15:45","回 Airbnb","約 1 小時，日落前到","三重県度会郡南伊勢町木谷"]]},
  {k:"DAY 4",date:"2026-11-29",md:"11/29",wd:"日",tag:"南伊勢．志摩兜風",title:"海岸線兜風：英虞灣到大王崎",drive:"合計 約 2 小時",stay:"南伊勢 Airbnb",
-  stops:[["09:30","Airbnb 出發，沿南伊勢海岸線往志摩","路邊觀景點隨停拍照",""],["10:30","橫山展望台俯瞰英虞灣","停車場旁平緩步道約 10 分，不用爬山","横山展望台"],["12:00","志摩地中海村：午餐、平地散步","橫山約 15 分","志摩地中海村"],["14:00","大王崎燈塔","約 20 分；漁村坡道步行 10 分，登塔可自選","大王埼灯台"],["15:15","回 Airbnb","約 50 分，日落前到",""]]},
+  stops:[["09:30","Airbnb 出發，沿南伊勢海岸線往志摩","路邊觀景點隨停拍照","三重県度会郡南伊勢町木谷"],["10:30","橫山展望台俯瞰英虞灣","停車場旁平緩步道約 10 分，不用爬山","横山展望台"],["12:00","志摩地中海村：午餐、平地散步","橫山約 15 分","志摩地中海村"],["14:00","大王崎燈塔","約 20 分；漁村坡道步行 10 分，登塔可自選","大王埼灯台"],["15:15","回 Airbnb","約 50 分，日落前到","三重県度会郡南伊勢町木谷"]]},
  {k:"DAY 5",date:"2026-11-30",md:"11/30",wd:"一",tag:"返回大阪",title:"Sangen 懷石後北上，難波還車",drive:"合計 約 3 小時 10 分",stay:"Hotel Kojan Shinsaibashi",
-  stops:[["09:30","Airbnb 退房出發","到伊勢市區約 50 分",""],["11:00","伊勢 Sangen 懷石午餐","8 人需提前訂位","Sangen 伊勢"],["13:00","出發前往大阪難波","約 2 小時 20 分",""],["15:30","難波周邊加油、還車（兩台）","滿油還車","トヨタレンタカー なんばバスターミナル"],["16:00","入住 Hotel Kojan Shinsaibashi","","Hotel Kojan Shinsaibashi"],["16:30","心齋橋、道頓堀購物","",""],["18:30","晚餐：壽司爐端 喜多郎壽司 道具屋筋橫丁店","8 人，18:30（autoreserve.com 訂位）","https://maps.app.goo.gl/7xcMAx5Y5Yp9t6YM8"],["晚上","飯後繼續逛道頓堀","",""],["提醒","Steven 今天先買明天的機場巴士票","",""]]},
+  stops:[["09:30","Airbnb 退房出發","到伊勢市區約 50 分","三重県度会郡南伊勢町木谷"],["11:00","伊勢 Sangen 懷石午餐","8 人需提前訂位","Sangen 伊勢"],["13:00","出發前往大阪難波","約 2 小時 20 分",""],["15:30","難波周邊加油、還車（兩台）","滿油還車","トヨタレンタカー なんばバスターミナル"],["16:00","入住 Hotel Kojan Shinsaibashi","","Hotel Kojan Shinsaibashi"],["16:30","心齋橋、道頓堀購物","",""],["18:30","晚餐：壽司爐端 喜多郎壽司 道具屋筋橫丁店","8 人，18:30（autoreserve.com 訂位）","https://maps.app.goo.gl/7xcMAx5Y5Yp9t6YM8"],["晚上","飯後繼續逛道頓堀","",""],["提醒","Steven 今天先買明天的機場巴士票","",""]]},
  {k:"DAY 6",date:"2026-12-01",md:"12/01",wd:"二",tag:"返國日",title:"機場巴士直達關西機場，搭樂桃回台北",drive:"機場巴士 約 70 分",stay:"—",
   stops:[["10:00","飯店退房（10:00 前），步行到 DOTON PLAZA","Hotel Kojan 步行約 10 分","DOTON PLAZA 大阪"],["10:35","DOTON PLAZA 搭機場巴士","¥1,800／人；票由 Steven 前一天先買","https://www.kate.co.jp/tcn/timetable/detail/ON"],["11:46","第 2 航廈下車","樂桃在第 2 航廈；第 1 航廈站是 11:35，不要提早下車","関西国際空港 第2ターミナル"],["13:25","開始辦理報到","國際線出發前 120–50 分鐘受理，14:35 截止",""],["15:25","MM027 起飛","17:55 抵達桃園第 1 航廈",""]]}
 ];
@@ -315,6 +354,19 @@ const INFO=[
  [ {k:"flight",tag:"機場巴士",t:"DOTON PLAZA → 關西機場",dl:[["發車","10:35 DOTON PLAZA（道頓堀廣場）"],["抵達","11:35 第 1 航廈／11:46 第 2 航廈"],["票價","¥1,800／人，約 70 分"],["備案","11:10 發車，12:21 到第 2 航廈"]],link:["官方時刻表","https://www.kate.co.jp/tcn/timetable/detail/ON"]},
    {k:"flight",tag:"航班",t:"樂桃 MM027 關西 → 桃園",dl:[["起飛","12/1（二）15:25 關西第 2 航廈"],["抵達","17:55 桃園第 1 航廈"],["報到","13:25–14:35"]],note:"先辦退稅與託運，再逛免稅店。"} ]
 ];
+
+/* Coordinates per map query (OpenStreetMap / booking GPS); stops without one have no marker */
+const GEO={
+ "関西国際空港":[34.43433,135.2442],"りんくうタウン駅":[34.41075,135.29966],"OMO関西空港 by 星野リゾート":[34.4115,135.3002],
+ "トヨタレンタカー りんくうタウン駅前店":[34.40932,135.29785],"奈良県営大仏前駐車場":[34.68543,135.83918],"東大寺":[34.68824,135.83976],
+ "水谷茶屋 奈良":[34.68349,135.84679],"春日大社":[34.68051,135.84607],"三重県度会郡南伊勢町木谷":[34.32294,136.72267],
+ "伊勢神宮 外宮":[34.48735,136.7037],"伊勢神宮 内宮":[34.45689,136.72298],"おかげ横丁":[34.46245,136.72291],
+ "朝熊山頂展望台":[34.45842,136.79114],"夫婦岩":[34.50834,136.7888],"横山展望台":[34.3222,136.78641],
+ "志摩地中海村":[34.31537,136.77581],"大王埼灯台":[34.27615,136.89953],
+ "トヨタレンタカー なんばバスターミナル":[34.66639,135.49511],"Hotel Kojan Shinsaibashi":[34.67462,135.50508],
+ "https://maps.app.goo.gl/7xcMAx5Y5Yp9t6YM8":[34.66393,135.50352],"DOTON PLAZA 大阪":[34.66858,135.49883],
+ "関西国際空港 第2ターミナル":[34.4238,135.2348]
+};
 const KIND={flight:"#A9C0DB",car:"#E2C78F",stay:"#A9CDB2",food:"#E1B3A6",tip:"#BDB3D9"};
 /* Currencies: everything is converted through TWD. rates = units of X per 1 TWD */
 const CUR={TWD:{sym:"NT$",name:"台幣",dp:0},JPY:{sym:"¥",name:"日圓",dp:0},HKD:{sym:"HK$",name:"港幣",dp:1}};
@@ -349,8 +401,9 @@ const ICONS={
  book:'<svg viewBox="0 0 24 24"><path d="M4 7h16v4a2 2 0 000 4v4H4v-4a2 2 0 000-4z"/><path d="M14 7v12" stroke-dasharray="2 2"/></svg>',
  ledger:'<svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>',
  photos:'<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="2.5"/><path d="M8.5 6l1.5-2.5h4L15.5 6"/><circle cx="12" cy="13" r="3.6"/></svg>',
+ game:'<svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="4"/><path d="M4.5 20c1.2-3.6 4-5.5 7.5-5.5s6.3 1.9 7.5 5.5"/><path d="M8.5 8.5h7"/></svg>',
  settle:'<svg viewBox="0 0 24 24"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>'};
-const TABS=[["plan","行程"],["drive","車程"],["photos","相簿"],["ledger","記帳"],["settle","結算"]];
+const TABS=[["plan","行程"],["drive","車程"],["photos","相簿"],["ledger","記帳"],["settle","結算"],["game","遊戲"]];
 function renderTabs(){
   document.getElementById("tabs").innerHTML=TABS.map(([k,l])=>`<a class="tab" href="#${k}" ${S.view===k?'aria-current="page"':''}>${ICONS[k]}<span>${l}</span></a>`).join("");
 }
@@ -377,6 +430,8 @@ function viewPlan(){
   <div class="dayhead"><div class="big num">${d.md}</div><div class="meta"><div class="k num">${d.k}</div><div class="t">星期${d.wd}．${esc(d.tag)}</div></div></div>
   <h2 class="daytitle">${esc(d.title)}</h2>
   <div class="facts"><span class="pill car">車程 ${esc(d.drive)}</span><span class="pill">住 ${esc(d.stay)}</span></div>
+  <div class="mapwrap"><div id="map" role="region" aria-label="當天地圖"></div>
+    <div class="maptools"><p class="note" id="geoNote">點地圖上的數字看景點資訊</p><button class="btn mini" type="button" id="locBtn">📍 我的位置</button></div></div>
   <div class="legend"><span><i style="background:var(--k-flight);border-color:var(--k-flight-line)"></i>航班／巴士</span><span><i style="background:var(--k-car);border-color:var(--k-car-line)"></i>租車</span><span><i style="background:var(--k-stay);border-color:var(--k-stay-line)"></i>住宿</span><span><i style="background:var(--k-food);border-color:var(--k-food-line)"></i>訂位</span><span><i style="background:var(--k-tip);border-color:var(--k-tip-line)"></i>提醒</span></div>
   <div class="blocks">${(INFO[S.day]||[]).map(blockHTML).join("")}</div>
   <div class="sec-label">當日時間表</div>
@@ -510,7 +565,9 @@ async function loadRates(){
 /* ---------- Render & events ---------- */
 function render(){
   const main=document.getElementById("main");
-  main.innerHTML={plan:viewPlan,drive:viewDrive,photos:viewPhotos,ledger:viewLedger,settle:viewSettle}[S.view]();
+  if(S.view!=="plan"&&MAP){MAP.remove();MAP=null;meMarker=null;meCircle=null}
+  main.innerHTML={plan:viewPlan,drive:viewDrive,photos:viewPhotos,game:viewGame,ledger:viewLedger,settle:viewSettle}[S.view]();
+  if(S.view==="plan")setTimeout(initMap,0);
   renderTabs();
 }
 function route(){
@@ -604,6 +661,132 @@ function initDb(){
 }
 document.addEventListener("click",e=>{if(e.target.id==="syncBtn")refresh()});
 
+
+
+
+/* ---------- 誰是間諜 (pass-and-play on one phone) ---------- */
+const PAIRS=[["牛奶","豆漿"],["餃子","包子"],["拉麵","烏龍麵"],["壽司","生魚片"],["溫泉","泳池"],["鳥居","牌坊"],["和服","浴衣"],["新幹線","高鐵"],
+["富士山","阿里山"],["抹茶","綠茶"],["章魚燒","大阪燒"],["便利商店","超市"],["咖啡","奶茶"],["貓","狗"],["蘋果","水梨"],["西瓜","哈密瓜"],
+["麥當勞","肯德基"],["口紅","唇膏"],["眼鏡","墨鏡"],["吉他","烏克麗麗"],["籃球","排球"],["電梯","手扶梯"],["枕頭","抱枕"],["牙刷","牙線"],
+["飛機","直升機"],["火鍋","壽喜燒"],["鞋子","拖鞋"],["雨傘","雨衣"],["月亮","太陽"],["老師","教授"],["醫生","護理師"],["手錶","鬧鐘"],
+["耳機","喇叭"],["薯條","洋芋片"],["冰淇淋","霜淇淋"],["神社","寺廟"],["燈塔","瞭望台"],["鹿","羊"],["海膽","鮭魚卵"],["清酒","燒酎"],
+["啤酒","氣泡水"],["相機","手機"],["行李箱","背包"],["護照","身分證"],["租車","計程車"],["夕陽","日出"],["筷子","湯匙"],["炸雞","烤雞"]];
+const G={phase:"setup",players:[...NAMES],spies:ls.get("ise.g.spies",2),blank:ls.get("ise.g.blank",false),
+  roles:{},words:{},seen:{},out:[],order:[],round:1,showing:null,picked:null,lastOut:null,winner:null,pair:null};
+function gStart(){
+  const ps=G.players.slice();if(ps.length<3)return;
+  const used=ls.get("ise.g.used",[]);let pool=PAIRS.map((_,i)=>i).filter(i=>!used.includes(i));if(!pool.length){pool=PAIRS.map((_,i)=>i);ls.set("ise.g.used",[])}
+  const pi=pool[Math.floor(Math.random()*pool.length)];ls.set("ise.g.used",[...ls.get("ise.g.used",[]),pi]);
+  const pair=Math.random()<.5?PAIRS[pi]:[PAIRS[pi][1],PAIRS[pi][0]];G.pair=pair;
+  const sh=ps.slice().sort(()=>Math.random()-.5);
+  const nSpy=Math.min(G.spies,Math.max(1,Math.floor((ps.length-1)/2)));
+  G.roles={};G.words={};
+  sh.forEach((n,i)=>{if(i<nSpy){G.roles[n]="spy";G.words[n]=pair[1]}else if(G.blank&&i===nSpy&&ps.length>=5){G.roles[n]="blank";G.words[n]=""}else{G.roles[n]="civ";G.words[n]=pair[0]}});
+  G.seen={};G.out=[];G.round=1;G.phase="deal";G.showing=null;G.picked=null;G.lastOut=null;G.winner=null;
+}
+function gAlive(){return G.players.filter(n=>!G.out.includes(n))}
+function gOrder(){const a=gAlive();const st=Math.floor(Math.random()*a.length);G.order=a.slice(st).concat(a.slice(0,st))}
+function gCheck(){const a=gAlive();const bad=a.filter(n=>G.roles[n]!=="civ").length;const good=a.length-bad;
+  if(bad===0)return "civ";if(bad>=good)return "spy";return null}
+const ROLE_NAME={civ:"平民",spy:"間諜",blank:"白板"};
+function viewGame(){
+  if(G.phase==="setup")return `<section class="view"><h2>誰是間諜</h2><p class="sub">一支手機輪流傳，看完自己的詞再交給下一位。</p>
+  <div class="game-card"><div class="label" style="margin-bottom:8px">誰要玩（${G.players.length} 人）</div>
+    <div class="chips">${NAMES.map(n=>`<button type="button" class="chip" data-gp="${n}" aria-pressed="${G.players.includes(n)}">${av(n)}${n}</button>`).join("")}</div></div>
+  <div class="game-card"><div class="label" style="margin-bottom:8px">間諜人數</div>
+    <div class="stepper"><button type="button" data-gs="-1" aria-label="減少">−</button><b>${G.spies}</b><button type="button" data-gs="1" aria-label="增加">＋</button><span class="note" style="margin:0">建議 8 人放 2 個</span></div>
+    <div class="label" style="margin:14px 0 8px">加一個白板（拿到空白，什麼詞都沒有）</div>
+    <div class="chips"><button type="button" class="chip cat" data-gb="0" aria-pressed="${!G.blank}">不要</button><button type="button" class="chip cat" data-gb="1" aria-pressed="${G.blank}">要</button></div></div>
+  <button class="btn primary" type="button" id="gGo" style="width:100%;padding:14px;font-size:17px" ${G.players.length<3?"disabled":""}>開始發詞</button>
+  <div class="game-card" style="margin-top:14px"><div class="label" style="margin-bottom:6px">玩法</div>
+    <ul style="margin:0;padding-left:20px;font-size:15px;line-height:1.7"><li>大部分人拿到同一個詞，間諜拿到相近但不同的詞</li><li>依順序每人用一句話描述自己的詞，不能直接說出來</li><li>每輪投票淘汰一人，間諜全部出局平民贏；間諜人數追上平民就是間諜贏</li></ul></div></section>`;
+  if(G.phase==="deal"){const left=G.players.filter(n=>!G.seen[n]).length;
+    return `<section class="view"><h2>發詞</h2><p class="sub">點自己的名字看詞，看完按「我記住了」再交給下一位。</p>
+    <div class="plist">${G.players.map(n=>`<button type="button" class="pbtn ${G.seen[n]?"done":""}" data-gshow="${n}" ${G.seen[n]?"disabled":""}>${av(n)}${n}<small>${G.seen[n]?"已看":"點我看詞"}</small></button>`).join("")}</div>
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn primary" type="button" id="gBegin" ${left?"disabled":""}>${left?`還有 ${left} 人沒看`:"大家都看完了，開始描述"}</button><button class="btn" type="button" id="gReset">重新設定</button></div></section>`}
+  if(G.phase==="play"){const a=gAlive();
+    return `<section class="view"><h2>第 ${G.round} 輪</h2>
+    ${G.lastOut?`<div class="blk ${G.roles[G.lastOut]==="civ"?"stay":"food"}" style="margin-bottom:14px"><span class="tag">上一輪</span><h3>${esc(G.lastOut)} 出局，是${ROLE_NAME[G.roles[G.lastOut]]}</h3></div>`:""}
+    <div class="game-card"><div class="label">描述順序（從第一位開始，每人一句）</div><div class="order">${G.order.map((n,i)=>`<span>${av(n)}${i+1}. ${esc(n)}</span>`).join("")}</div></div>
+    <div class="game-card"><div class="label" style="margin-bottom:8px">投票：點選得票最多的人</div>
+      <div class="plist">${G.players.map(n=>`<button type="button" class="pbtn ${G.out.includes(n)?"out":""}" data-gvote="${n}" ${G.out.includes(n)?"disabled":""} ${G.picked===n?'style="border-color:var(--accent);background:var(--accent-soft)"':""}>${av(n)}${n}</button>`).join("")}</div>
+      <div style="margin-top:12px">${G.picked?`<button class="btn primary" type="button" id="gOut">確定淘汰 ${esc(G.picked)}</button>`:`<span class="note">還剩 ${a.length} 人</span>`}</div></div>
+    <button class="btn" type="button" id="gEnd">結束遊戲並公布答案</button></section>`}
+  /* end */
+  return `<section class="view"><h2>遊戲結束</h2>
+  <div class="game-card"><p class="result">${G.winner==="civ"?"平民獲勝！":G.winner==="spy"?"間諜獲勝！":"答案揭曉"}</p>
+    <p style="margin:0;font-size:17px">平民的詞：<b>${esc(G.pair[0])}</b>　間諜的詞：<b>${esc(G.pair[1])}</b></p>
+    <div class="roles">${G.players.map(n=>`<div>${av(n)}${esc(n)}${G.out.includes(n)?'<small style="color:var(--muted)">（出局）</small>':""}<span class="r ${G.roles[n]!=="civ"?"spy":""}">${ROLE_NAME[G.roles[n]]}</span></div>`).join("")}</div></div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn primary" type="button" id="gAgain">同樣的人再玩一局</button><button class="btn" type="button" id="gReset">重新設定</button></div></section>`;
+}
+function gReveal(n){
+  const ov=document.createElement("div");ov.className="reveal";ov.setAttribute("role","dialog");
+  ov.innerHTML=`<div class="who">${esc(n)}，確定旁邊沒人在看？</div><button class="btn primary" type="button" id="rv1">顯示我的詞</button>`;
+  document.body.appendChild(ov);
+  ov.addEventListener("click",e=>{
+    if(e.target.id==="rv1"){const w=G.words[n];ov.innerHTML=`<div class="who">${esc(n)} 的詞</div><div class="word">${w?esc(w):"（空白）"}</div><div class="hint">${w?"記住後按下面的按鈕":"你是白板：聽別人描述，假裝自己知道"}</div><button class="btn primary" type="button" id="rv2">我記住了</button>`}
+    if(e.target.id==="rv2"){G.seen[n]=true;ov.remove();render()}
+  });
+}
+document.addEventListener("click",e=>{
+  if(S.view!=="game")return;
+  const t=e.target.closest("[data-gp],[data-gs],[data-gb],[data-gshow],[data-gvote],#gGo,#gBegin,#gReset,#gOut,#gEnd,#gAgain");if(!t)return;
+  if(t.dataset.gp){const n=t.dataset.gp;G.players=G.players.includes(n)?G.players.filter(x=>x!==n):NAMES.filter(x=>G.players.includes(x)||x===n)}
+  else if(t.dataset.gs){G.spies=Math.max(1,Math.min(3,G.spies+ +t.dataset.gs));ls.set("ise.g.spies",G.spies)}
+  else if(t.dataset.gb){G.blank=t.dataset.gb==="1";ls.set("ise.g.blank",G.blank)}
+  else if(t.dataset.gshow){gReveal(t.dataset.gshow);return}
+  else if(t.dataset.gvote){G.picked=G.picked===t.dataset.gvote?null:t.dataset.gvote}
+  else if(t.id==="gGo"||t.id==="gAgain"){gStart()}
+  else if(t.id==="gBegin"){G.phase="play";gOrder()}
+  else if(t.id==="gReset"){G.phase="setup"}
+  else if(t.id==="gOut"){G.out.push(G.picked);G.lastOut=G.picked;G.picked=null;const w=gCheck();if(w){G.winner=w;G.phase="end"}else{G.round++;gOrder()}}
+  else if(t.id==="gEnd"){G.winner=null;G.phase="end"}
+  render();
+});
+
+/* ---------- Day map ---------- */
+let MAP=null,meMarker=null,meCircle=null,lastPos=null,watchId=null;
+function dayPoints(i){
+  const pts=[];const seen=new Set();
+  DAYS[i].stops.forEach(([tm,tx,sm,q])=>{const g=GEO[q];if(!g)return;const key=g.join(",");
+    if(seen.has(key)){const p=pts.find(x=>x.key===key);p.items.push({tm,tx,sm});return}
+    seen.add(key);pts.push({key,ll:g,q,items:[{tm,tx,sm}]})});
+  return pts;
+}
+function initMap(){
+  const el=document.getElementById("map");if(!el)return;
+  if(typeof L==="undefined"){el.innerHTML='<p class="note" style="padding:16px">地圖需要網路才能顯示。</p>';return}
+  if(MAP){MAP.remove();MAP=null;meMarker=null;meCircle=null}
+  MAP=L.map(el,{zoomControl:true,attributionControl:true,tap:true});
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(MAP);
+  const pts=dayPoints(S.day);
+  pts.forEach((p,n)=>{
+    const home=/南伊勢町木谷|OMO|Kojan/.test(p.q);
+    const icon=L.divIcon({className:"",html:`<div class="pin${home?" home":""}">${home?"⌂":n+1}</div>`,iconSize:[30,30],iconAnchor:[15,15],popupAnchor:[0,-14]});
+    const html=p.items.map(it=>`<span class="t">${esc(it.tm)}</span><b>${esc(it.tx)}</b>${it.sm?`<small>${esc(it.sm)}</small>`:""}`).join('<hr style="border:none;border-top:1px solid #ddd;margin:6px 0">')+`<a class="go" href="${gm(p.q)}" target="_blank" rel="noopener">Google 地圖導航</a>`;
+    L.marker(p.ll,{icon}).addTo(MAP).bindPopup(html,{maxWidth:260});
+  });
+  if(pts.length>1)L.polyline(pts.map(p=>p.ll),{color:"#B9573F",weight:3,opacity:.55,dashArray:"6 8"}).addTo(MAP);
+  if(pts.length)MAP.fitBounds(L.latLngBounds(pts.map(p=>p.ll)).pad(.15),{maxZoom:15});else MAP.setView([34.6,136.2],8);
+  if(lastPos)drawMe(lastPos);
+  startWatch();
+}
+function drawMe(pos){
+  lastPos=pos;if(!MAP)return;
+  const ll=[pos.coords.latitude,pos.coords.longitude];
+  if(!meMarker){meMarker=L.marker(ll,{icon:L.divIcon({className:"",html:'<div class="me"></div>',iconSize:[18,18],iconAnchor:[9,9]}),zIndexOffset:1000}).addTo(MAP).bindPopup("<b>我在這裡</b>");
+    meCircle=L.circle(ll,{radius:pos.coords.accuracy||30,color:"#2F6FE0",weight:1,fillOpacity:.1}).addTo(MAP)}
+  else{meMarker.setLatLng(ll);meCircle.setLatLng(ll).setRadius(pos.coords.accuracy||30)}
+}
+function startWatch(){
+  if(watchId!==null||!navigator.geolocation)return;
+  watchId=navigator.geolocation.watchPosition(p=>{drawMe(p);const n=document.getElementById("geoNote");if(n)n.textContent="藍點是你現在的位置"},
+    err=>{const n=document.getElementById("geoNote");if(n)n.textContent=err.code===1?"沒有開啟定位權限，看不到你的位置":"暫時抓不到你的位置";watchId=null},
+    {enableHighAccuracy:true,maximumAge:10000,timeout:20000});
+}
+document.addEventListener("click",e=>{
+  if(e.target.closest("#locBtn")){if(lastPos&&MAP){MAP.setView([lastPos.coords.latitude,lastPos.coords.longitude],15);meMarker&&meMarker.openPopup()}else{watchId=null;startWatch();const n=document.getElementById("geoNote");if(n)n.textContent="正在找你的位置…"}}
+});
 
 /* ---------- Photos ---------- */
 function shrink(file){return new Promise((res,rej)=>{const r=new FileReader();r.onerror=rej;r.onload=()=>{const img=new Image();img.onerror=rej;img.onload=()=>{
