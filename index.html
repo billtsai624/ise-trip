@@ -316,6 +316,14 @@ const INFO=[
    {k:"flight",tag:"航班",t:"樂桃 MM027 關西 → 桃園",dl:[["起飛","12/1（二）15:25 關西第 2 航廈"],["抵達","17:55 桃園第 1 航廈"],["報到","13:25–14:35"]],note:"先辦退稅與託運，再逛免稅店。"} ]
 ];
 const KIND={flight:"#A9C0DB",car:"#E2C78F",stay:"#A9CDB2",food:"#E1B3A6",tip:"#BDB3D9"};
+/* Currencies: everything is converted through TWD. rates = units of X per 1 TWD */
+const CUR={TWD:{sym:"NT$",name:"台幣",dp:0},JPY:{sym:"¥",name:"日圓",dp:0},HKD:{sym:"HK$",name:"港幣",dp:1}};
+const CUR_KEYS=["JPY","TWD","HKD"];
+const DEFAULT_RATES={TWD:1,JPY:4.7,HKD:0.24};
+function money(v,c){const d=CUR[c]||CUR.JPY;const k=Math.pow(10,d.dp);const r=Math.round(v*k)/k;return (r<0?"-":"")+d.sym+Math.abs(r).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:d.dp})}
+function toBase(a,c){return a/(S.rates[c]||1)}
+function fromBase(v,c){return v*(S.rates[c]||1)}
+function conv(a,from,to){return fromBase(toBase(a,from),to)}
 const CATS=["餐飲","交通","住宿","門票","購物","其他"];
 
 /* ---------- Utils ---------- */
@@ -329,8 +337,9 @@ const S={
   view:"plan",
   day:(()=>{const t=jstToday();const i=DAYS.findIndex(d=>d.date===t);return i>=0?i:ls.get("ise.day",0)})(),
   expenses:[], photos:[], folderUrl:"", photoState:"loading", pendingPhoto:null, files:[], uploading:false, dbState:"loading", db:null, readOnly:false, pendingDelete:null,
-  rate:ls.get("ise.rate",0.21),
-  form:{title:"",amount:"",payer:ls.get("ise.me","Bill"),split:[...NAMES],day:"",cat:"餐飲"}
+  rates:Object.assign({},DEFAULT_RATES,(ls.get("ise.rates",null)||{}).rates||{}), rateDate:(ls.get("ise.rates",null)||{}).date||"",
+  settleCur:ls.get("ise.scur","TWD"),
+  form:{title:"",amount:"",cur:ls.get("ise.cur","JPY"),payer:ls.get("ise.me","Bill"),split:[...NAMES],day:"",cat:"餐飲"}
 };
 
 /* ---------- Tabs ---------- */
@@ -364,7 +373,6 @@ function viewPlan(){
     <div><span class="label">交通</span><b>兩台車，Day 2 臨空城取、Day 5 難波還</b></div>
     <div><span class="label">節奏</span><b>南伊勢連住三晚，一天一個方向</b></div>
   </div>
-  <div class="crew">${NAMES.map(n=>`<span>${av(n)}${esc(n)}</span>`).join("")}</div>
   <div class="days" role="group" aria-label="選擇日期">${DAYS.map((x,i)=>`<button type="button" class="day-btn" data-day="${i}" aria-pressed="${i===S.day}"><span class="w">D${i+1}．${x.wd}</span><div class="d num">${x.md}</div>${x.date===t?'<span class="today">今天</span>':''}</button>`).join("")}</div>
   <div class="dayhead"><div class="big num">${d.md}</div><div class="meta"><div class="k num">${d.k}</div><div class="t">星期${d.wd}．${esc(d.tag)}</div></div></div>
   <h2 class="daytitle">${esc(d.title)}</h2>
@@ -431,57 +439,72 @@ function viewLedger(){
   <form class="add" id="addForm" novalidate>
     <div class="f2">
       <div class="field"><label for="fTitle">項目</label><input id="fTitle" maxlength="40" placeholder="例：水谷茶屋午餐" value="${esc(f.title)}"></div>
-      <div class="field"><label for="fAmt">金額（日圓）</label><input id="fAmt" inputmode="numeric" placeholder="0" value="${esc(f.amount)}"></div>
+      <div class="field"><label for="fAmt">金額（${CUR[f.cur].name}）</label><input id="fAmt" inputmode="decimal" placeholder="0" value="${esc(f.amount)}"></div>
     </div>
     <div class="f2">
       <div class="field"><label for="fPayer">誰付的</label><select id="fPayer">${NAMES.map(n=>`<option ${n===f.payer?"selected":""}>${n}</option>`).join("")}</select></div>
       <div class="field"><label for="fDay">日期</label><select id="fDay"><option value="pre" ${f.day==="pre"?"selected":""}>行前</option>${DAYS.map((d,i)=>`<option value="${d.date}" ${(f.day||DAYS[S.day].date)===d.date?"selected":""}>D${i+1} ${d.md}</option>`).join("")}</select></div>
     </div>
+    <div class="field"><label>幣別</label><div class="chips">${CUR_KEYS.map(c=>`<button type="button" class="chip cat" data-cur="${c}" aria-pressed="${c===f.cur}">${CUR[c].name} ${CUR[c].sym}</button>`).join("")}</div></div>
     <div class="field"><label>類別</label><div class="chips">${CATS.map(c=>`<button type="button" class="chip cat" data-cat="${c}" aria-pressed="${c===f.cat}">${c}</button>`).join("")}</div></div>
     <div class="field"><label>誰要分（${f.split.length} 人）<button type="button" class="btn mini" id="allBtn" style="margin-left:8px">${f.split.length===NAMES.length?"全部取消":"全選"}</button></label>
       <div class="chips">${NAMES.map(n=>`<button type="button" class="chip" data-split="${n}" aria-pressed="${f.split.includes(n)}">${av(n)}${n}</button>`).join("")}</div></div>
-    <div class="formfoot"><span class="status" id="formMsg">${f.amount&&f.split.length?`每人 ${yen(+f.amount/f.split.length)}`:""}</span><button class="btn primary" type="submit" ${S.readOnly?"disabled":""}>新增一筆</button></div>
+    <div class="formfoot"><span class="status" id="formMsg">${perPerson(f)}</span><button class="btn primary" type="submit" ${S.readOnly?"disabled":""}>新增一筆</button></div>
   </form>
-  ${S.expenses.length?groups.map(g=>`<div class="daygroup"><h4><span>${esc(g.d.k)}　${esc(g.d.md)}</span><span class="num">${yen(g.items.reduce((s,e)=>s+e.amount,0))}</span></h4>
+  ${S.expenses.length?groups.map(g=>`<div class="daygroup"><h4><span>${esc(g.d.k)}　${esc(g.d.md)}</span><span class="num">≈ ${money(g.items.reduce((s,e)=>s+toBase(e.amount,e.cur),0)*S.rates[S.settleCur],S.settleCur)}</span></h4>
     ${g.items.map(e=>`<div class="exp">${av(e.payer)}<div class="tx"><b>${esc(e.title)}</b><small>${esc(e.payer)} 付．${esc(e.cat||"")}．${e.split.length===NAMES.length?"8 人平分":esc(e.split.join("、"))}</small></div>
-      <div class="amt"><span class="num">${yen(e.amount)}</span>${S.readOnly?"":`<button type="button" data-del="${esc(e.id)}" class="${S.pendingDelete===e.id?"sure":""}">${S.pendingDelete===e.id?"確定刪除":"刪除"}</button>`}</div></div>`).join("")}</div>`).join("")
-  :`<div class="empty">還沒有任何花費。<br>填上面的表單新增第一筆，或到「預訂」把租車、飯店直接記進來。</div>`}
+      <div class="amt"><span class="num">${money(e.amount,e.cur)}</span>${e.cur!==S.settleCur?`<small class="num" style="display:block;color:var(--muted);font-size:13px">≈ ${money(conv(e.amount,e.cur,S.settleCur),S.settleCur)}</small>`:""}${S.readOnly?"":`<button type="button" data-del="${esc(e.id)}" class="${S.pendingDelete===e.id?"sure":""}">${S.pendingDelete===e.id?"確定刪除":"刪除"}</button>`}</div></div>`).join("")}</div>`).join("")
+  :`<div class="empty">還沒有任何花費。<br>填上面的表單新增第一筆，或在「行程」「車程」的色塊按「記入帳本」，把租車、飯店直接記進來。</div>`}
   </section>`;
 }
+function perPerson(f){const a=+String(f.amount).replace(/[^\d.]/g,"");if(!a||!f.split.length)return "";const each=a/f.split.length;
+  return `每人 ${money(each,f.cur)}`+(f.cur!=="TWD"?`（≈ ${money(conv(each,f.cur,"TWD"),"TWD")}）`:"")}
 function computeSettle(){
+  /* all math in TWD, displayed in the chosen currency */
   const paid={},owe={};NAMES.forEach(n=>{paid[n]=0;owe[n]=0});
   let total=0;
   for(const e of S.expenses){
     const sp=e.split.filter(n=>NAMES.includes(n));if(!sp.length||!NAMES.includes(e.payer))continue;
-    total+=e.amount;paid[e.payer]+=e.amount;
-    sp.forEach(n=>owe[n]+=e.amount/sp.length);
+    const v=toBase(e.amount,e.cur);
+    total+=v;paid[e.payer]+=v;sp.forEach(n=>owe[n]+=v/sp.length);
   }
   const net=NAMES.map(n=>({n,paid:paid[n],owe:owe[n],v:paid[n]-owe[n]}));
-  const cred=net.filter(x=>x.v>0.5).map(x=>({...x})).sort((a,b)=>b.v-a.v);
-  const debt=net.filter(x=>x.v<-0.5).map(x=>({...x,v:-x.v})).sort((a,b)=>b.v-a.v);
+  const eps=0.5;
+  const cred=net.filter(x=>x.v>eps).map(x=>({...x})).sort((a,b)=>b.v-a.v);
+  const debt=net.filter(x=>x.v<-eps).map(x=>({...x,v:-x.v})).sort((a,b)=>b.v-a.v);
   const tx=[];let i=0,j=0;
   while(i<debt.length&&j<cred.length){
     const m=Math.min(debt[i].v,cred[j].v);
-    if(Math.round(m)>0)tx.push({from:debt[i].n,to:cred[j].n,amt:Math.round(m)});
-    debt[i].v-=m;cred[j].v-=m;if(debt[i].v<0.5)i++;if(cred[j].v<0.5)j++;
+    if(m>eps)tx.push({from:debt[i].n,to:cred[j].n,amt:m});
+    debt[i].v-=m;cred[j].v-=m;if(debt[i].v<eps)i++;if(cred[j].v<eps)j++;
   }
   return {total,net,tx};
 }
 function viewSettle(){
-  const {total,net,tx}=computeSettle();
+  const {total,net,tx}=computeSettle();const C=S.settleCur;
+  const M=v=>money(fromBase(v,C),C);
+  const others=v=>CUR_KEYS.filter(c=>c!==C).map(c=>money(fromBase(v,c),c)).join("．");
   const max=Math.max(1,...net.map(x=>Math.abs(x.v)));
-  const twd=n=>"NT$"+Math.round(n*S.rate).toLocaleString("en-US");
+  const byCur=CUR_KEYS.map(c=>[c,S.expenses.filter(e=>e.cur===c).reduce((s,e)=>s+e.amount,0)]).filter(x=>x[1]);
   return `<section class="view">
-  <h2>結算</h2><p class="sub">依每筆花費的付款人與分攤人自動計算，用最少次數轉帳就能結清。</p>
-  <div class="total"><div><span class="label">全團總花費</span><div class="big num">${yen(total)}</div></div><div style="text-align:right"><span class="label">平均每人</span><div class="num" style="font-weight:700;font-size:18px">${yen(total/NAMES.length)}</div></div></div>
-  <div class="rate"><label for="fRate">匯率 1 日圓 =</label><input id="fRate" inputmode="decimal" value="${S.rate}"> 台幣（自行調整）</div>
+  <h2>結算</h2><p class="sub">不同幣別的花費會自動換算，用最少次數轉帳就能結清。</p>
+  <div class="field" style="margin-bottom:12px"><label>用哪個幣別結算</label><div class="chips">${CUR_KEYS.map(c=>`<button type="button" class="chip cat" data-scur="${c}" aria-pressed="${c===C}">${CUR[c].name} ${CUR[c].sym}</button>`).join("")}</div></div>
+  <div class="total"><div><span class="label">全團總花費</span><div class="big num">${M(total)}</div>${byCur.length>1?`<small style="color:var(--muted)">${byCur.map(([c,v])=>money(v,c)).join(" ＋ ")}</small>`:""}</div><div style="text-align:right"><span class="label">平均每人</span><div class="num" style="font-weight:700;font-size:18px">${M(total/NAMES.length)}</div></div></div>
+  <p class="note" style="margin:-4px 0 16px">匯率：1 台幣 = ${S.rates.JPY.toFixed(2)} 日圓 = ${S.rates.HKD.toFixed(3)} 港幣${S.rateDate?`（${esc(S.rateDate)} 自動更新）`:"（預設值，連上網路後自動更新）"}</p>
   <div class="label" style="margin-bottom:6px">誰該付給誰</div>
-  ${tx.length?tx.map(t=>`<div class="xfer"><div class="who">${av(t.from)}<b>${esc(t.from)}</b></div><div class="who"><span class="arrow">→</span>${av(t.to)}<b>${esc(t.to)}</b></div><div class="m"><span class="num">${yen(t.amt)}</span><small class="num">${twd(t.amt)}</small></div></div>`).join("")
+  ${tx.length?tx.map(t=>`<div class="xfer"><div class="who">${av(t.from)}<b>${esc(t.from)}</b></div><div class="who"><span class="arrow">→</span>${av(t.to)}<b>${esc(t.to)}</b></div><div class="m"><span class="num">${M(t.amt)}</span><small class="num">${others(t.amt)}</small></div></div>`).join("")
    :`<div class="empty">${total?"大家已經打平，不用轉帳。":"記帳後這裡會列出每個人要付給誰多少錢。"}</div>`}
   <div class="label" style="margin:18px 0 4px">每人收支</div>
-  ${net.map(x=>{const w=Math.abs(x.v)/max*50;return `<div class="bal">${av(x.n)}<div><b>${esc(x.n)}</b> <small style="color:var(--muted)">付 ${yen(x.paid)}．應分 ${yen(x.owe)}</small><div class="bar"><i style="left:${x.v>=0?50:50-w}%;width:${w}%;background:var(${x.v>=0?"--good":"--accent"})"></i></div></div><span class="v ${x.v>0.5?"pos":x.v<-0.5?"neg":""}">${x.v>0.5?"+":""}${yen(x.v)}</span></div>`}).join("")}
-  <p class="note" style="margin-top:10px">綠色是先墊錢、要收回的人；紅色是要付出去的人。金額四捨五入到 1 日圓。</p>
+  ${net.map(x=>{const w=Math.abs(x.v)/max*50;return `<div class="bal">${av(x.n)}<div><b>${esc(x.n)}</b> <small style="color:var(--muted)">付 ${M(x.paid)}．應分 ${M(x.owe)}</small><div class="bar"><i style="left:${x.v>=0?50:50-w}%;width:${w}%;background:var(${x.v>=0?"--good":"--accent"})"></i></div></div><span class="v ${x.v>0.5?"pos":x.v<-0.5?"neg":""}">${x.v>0.5?"+":""}${M(x.v)}</span></div>`}).join("")}
+  <p class="note" style="margin-top:10px">綠色是先墊錢、要收回的人；紅色是要付出去的人。</p>
   </section>`;
+}
+async function loadRates(){
+  try{const r=await fetch("https://open.er-api.com/v6/latest/TWD");const j=await r.json();
+    if(j&&j.rates&&j.rates.JPY&&j.rates.HKD){S.rates={TWD:1,JPY:j.rates.JPY,HKD:j.rates.HKD};
+      const d=new Date((j.time_last_update_unix||Date.now()/1000)*1000);S.rateDate=(d.getMonth()+1)+"/"+d.getDate();
+      ls.set("ise.rates",{rates:S.rates,date:S.rateDate});if(S.view==="settle"||S.view==="ledger")rerenderKeepingForm()}}
+  catch(e){}
 }
 
 /* ---------- Render & events ---------- */
@@ -498,13 +521,15 @@ function route(){
 window.addEventListener("hashchange",route);
 
 document.addEventListener("click",e=>{
-  const t=e.target.closest("[data-day],[data-cat],[data-split],[data-book],[data-del],#allBtn,#installBtn,#closeSheet,#copyUrl,.sheet");
+  const t=e.target.closest("[data-day],[data-cat],[data-cur],[data-scur],[data-split],[data-book],[data-del],#allBtn,#installBtn,#closeSheet,#copyUrl,.sheet");
   if(!t)return;
   if(t.dataset.day!=null){S.day=+t.dataset.day;ls.set("ise.day",S.day);render();return}
   if(t.dataset.cat){syncForm();S.form.cat=t.dataset.cat;render();return}
+  if(t.dataset.cur){syncForm();S.form.cur=t.dataset.cur;ls.set("ise.cur",t.dataset.cur);render();return}
+  if(t.dataset.scur){S.settleCur=t.dataset.scur;ls.set("ise.scur",t.dataset.scur);render();return}
   if(t.dataset.split){syncForm();const n=t.dataset.split,s=S.form.split;S.form.split=s.includes(n)?s.filter(x=>x!==n):NAMES.filter(x=>s.includes(x)||x===n);render();return}
   if(t.id==="allBtn"){syncForm();S.form.split=S.form.split.length===NAMES.length?[]:[...NAMES];render();return}
-  if(t.dataset.book!=null){const b=BOOKINGS[+t.dataset.book];Object.assign(S.form,{title:b.t,amount:String(b.price),cat:b.cat,day:"pre",split:[...NAMES]});location.hash="ledger";return}
+  if(t.dataset.book!=null){const b=BOOKINGS[+t.dataset.book];Object.assign(S.form,{title:b.t,amount:String(b.price),cur:"JPY",cat:b.cat,day:"pre",split:[...NAMES]});location.hash="ledger";return}
   if(t.dataset.del){const id=t.dataset.del;if(S.pendingDelete===id){removeExpense(id)}else{S.pendingDelete=id;render()}return}
   if(t.id==="installBtn"){document.getElementById("urlField").value=location.href.split("#")[0];document.getElementById("sheet").hidden=false;return}
   if(t.id==="closeSheet"||(t.classList.contains("sheet")&&e.target===t)){document.getElementById("sheet").hidden=true;return}
@@ -512,7 +537,7 @@ document.addEventListener("click",e=>{
 });
 document.addEventListener("input",e=>{
   if(e.target.id==="fRate"){const v=parseFloat(e.target.value);if(v>0){S.rate=v;ls.set("ise.rate",v);const pos=e.target.selectionStart;render();const r=document.getElementById("fRate");r.focus();try{r.setSelectionRange(pos,pos)}catch(_){}}}
-  if(e.target.id==="fAmt"){const m=document.getElementById("formMsg");const a=+e.target.value.replace(/[^\d.]/g,"");m.className="status";m.textContent=a&&S.form.split.length?`每人 ${yen(a/S.form.split.length)}`:""}
+  if(e.target.id==="fAmt"){const m=document.getElementById("formMsg");m.className="status";m.textContent=perPerson({amount:e.target.value,split:S.form.split,cur:S.form.cur})}
 });
 function syncForm(){
   const g=id=>document.getElementById(id);if(!g("fTitle"))return;
@@ -521,13 +546,13 @@ function syncForm(){
 document.addEventListener("submit",async e=>{
   if(e.target.id!=="addForm")return;e.preventDefault();syncForm();
   const f=S.form,msg=document.getElementById("formMsg");
-  const amount=Math.round(+String(f.amount).replace(/[^\d.]/g,""));
+  const amount=Math.round(+String(f.amount).replace(/[^\d.]/g,"")*100)/100;
   const fail=t=>{msg.textContent=t;msg.className="status err"};
   if(!f.title.trim())return fail("請填寫項目名稱");
-  if(!(amount>0))return fail("請填寫金額（日圓）");
+  if(!(amount>0))return fail("請填寫金額");
   if(!f.split.length)return fail("至少選一個人分攤");
   ls.set("ise.me",f.payer);
-  const item={title:f.title.trim(),amount,payer:f.payer,split:[...f.split],day:f.day||DAYS[S.day].date,cat:f.cat,createdAt:Date.now()};
+  const item={title:f.title.trim(),amount,cur:f.cur,payer:f.payer,split:[...f.split],day:f.day||DAYS[S.day].date,cat:f.cat,createdAt:Date.now()};
   const ok=await addExpense(item);
   if(ok){Object.assign(S.form,{title:"",amount:"",split:[...NAMES],day:item.day});render();const m=document.getElementById("formMsg");m.textContent="已新增";m.className="status ok"}
 });
@@ -538,7 +563,7 @@ const MON={Jan:"01",Feb:"02",Mar:"03",Apr:"04",May:"05",Jun:"06",Jul:"07",Aug:"0
 function fixDay(d){d=String(d||"");if(/^\d{4}-\d{2}-\d{2}$/.test(d)||d==="pre")return d;
   const m=d.match(/([A-Z][a-z]{2}) (\d{1,2}) (\d{4})/);if(m&&MON[m[1]])return m[3]+"-"+MON[m[1]]+"-"+m[2].padStart(2,"0");
   const t=new Date(d);return isNaN(t)?d:new Date(t.getTime()+8*3600e3).toISOString().slice(0,10)}
-function normalize(x){return {id:String(x.id||""),title:String(x.title||""),amount:+x.amount||0,payer:String(x.payer||""),split:Array.isArray(x.split)?x.split.map(String):String(x.split||"").split(",").filter(Boolean),day:fixDay(x.day),cat:String(x.cat||""),createdAt:+x.createdAt||0}}
+function normalize(x){return {id:String(x.id||""),title:String(x.title||""),amount:+x.amount||0,payer:String(x.payer||""),split:Array.isArray(x.split)?x.split.map(String):String(x.split||"").split(",").filter(Boolean),day:fixDay(x.day),cat:String(x.cat||""),cur:CUR[x.cur]?String(x.cur):"JPY",createdAt:+x.createdAt||0}}
 function applyItems(items){S.expenses=(items||[]).map(normalize).filter(e=>e.id);sortExp();S.dbState="live";rerenderKeepingForm()}
 async function apiPost(body){
   /* text/plain avoids the CORS preflight Apps Script cannot answer */
@@ -570,6 +595,7 @@ function rerenderKeepingForm(){
   syncForm();render();
 }
 function initDb(){
+  loadRates();
   if(!API){S.dbState="local";S.expenses=ls.get("ise.local",[]);sortExp();return}
   const cached=ls.get("ise.cache",null);if(cached){S.expenses=cached.map(normalize);sortExp()}
   refresh();refreshPhotos();
