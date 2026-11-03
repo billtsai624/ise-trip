@@ -25,14 +25,7 @@
   --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
   --f-num:"Archivo",ui-monospace,system-ui,sans-serif;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#1D1C1A; --surface:#262522; --ink:#E9E6E0; --muted:#A8A39B; --line:#3A3834;
-  --accent:#DE8C76; --accent-ink:#22140F; --accent-soft:#3B2A24;
-  --good:#86C3A0; --good-soft:#1F3328; --warn:#D9AE73; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#1D1C1A; --surface:#262522; --ink:#E9E6E0; --muted:#A8A39B; --line:#3A3834;
-  --accent:#DE8C76; --accent-ink:#22140F; --accent-soft:#3B2A24;
-  --good:#86C3A0; --good-soft:#1F3328; --warn:#D9AE73; color-scheme:dark}
+:root{color-scheme:light}
 *{box-sizing:border-box}
 html{padding-top:env(safe-area-inset-top,0px)}
 body{margin:0}
@@ -81,7 +74,7 @@ h2{font-family:var(--f-display);font-weight:700;font-size:26px;line-height:1.25;
 .pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 12px;font-size:15px;background:var(--surface);border:1px solid var(--line)}
 .pill.car{background:var(--accent-soft);border-color:transparent;color:var(--ink)}
 
-.timeline{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.timeline{list-style:none;margin:0;padding:0}
 .timeline li{display:grid;grid-template-columns:62px 1fr auto;gap:12px;padding:16px 0;border-bottom:1px solid var(--line);align-items:start}
 .timeline .tm{font-family:var(--f-num);font-weight:700;color:var(--accent);font-size:17px;padding-top:1px}
 .timeline .tx{min-width:0}
@@ -175,7 +168,7 @@ input,select{font:17px var(--f-body);color:var(--ink);background:var(--bg);borde
 
 /* Tab bar */
 nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
-nav.tabs .in{max-width:620px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+nav.tabs .in{max-width:620px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
 .tab{border:none;background:none;color:var(--muted);font:500 13px var(--f-body);padding:9px 0 10px;display:grid;justify-items:center;gap:3px;cursor:pointer;text-decoration:none}
 .tab svg{width:25px;height:25px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .tab[aria-current="page"]{color:var(--accent);font-weight:700}
@@ -190,6 +183,38 @@ nav.tabs .in{max-width:620px;margin:0 auto;display:grid;grid-template-columns:re
 .urlbox input{font-size:13px}
 @media (prefers-reduced-motion: no-preference){.view{animation:in .2s ease-out}@keyframes in{from{opacity:.6;transform:translateY(4px)}to{opacity:1;transform:none}}}
 @media (max-width:420px){.dayhead .big{font-size:40px}.timeline li{grid-template-columns:56px 1fr auto}.spots{grid-template-columns:1fr}.hero{grid-template-columns:1fr}.hero div+div{padding-left:0;border-left:none;border-top:1px solid var(--line)}.timeline .nav{grid-column:2;justify-self:start}}
+
+/* Info blocks: color = kind of information */
+:root{
+  --k-flight:#E4EDF7; --k-flight-line:#A9C0DB; --k-flight-ink:#2F5680;
+  --k-car:#F8EEDB; --k-car-line:#E2C78F; --k-car-ink:#7A5617;
+  --k-stay:#E3F0E6; --k-stay-line:#A9CDB2; --k-stay-ink:#2F6A43;
+  --k-food:#F7E6E1; --k-food-line:#E1B3A6; --k-food-ink:#8A3F2C;
+  --k-tip:#ECE8F5; --k-tip-line:#BDB3D9; --k-tip-ink:#4E4180;
+}
+.blocks{display:grid;gap:12px;margin:4px 0 18px}
+.blk{border-radius:14px;padding:14px 16px;border:1px solid;min-width:0}
+.blk.flight{background:var(--k-flight);border-color:var(--k-flight-line)}
+.blk.car{background:var(--k-car);border-color:var(--k-car-line)}
+.blk.stay{background:var(--k-stay);border-color:var(--k-stay-line)}
+.blk.food{background:var(--k-food);border-color:var(--k-food-line)}
+.blk.tip{background:var(--k-tip);border-color:var(--k-tip-line)}
+.blk .tag{display:inline-block;font-size:13px;font-weight:700;letter-spacing:.06em;padding:2px 10px;border-radius:999px;background:var(--surface);margin-bottom:6px}
+.blk.flight .tag{color:var(--k-flight-ink)} .blk.car .tag{color:var(--k-car-ink)} .blk.stay .tag{color:var(--k-stay-ink)} .blk.food .tag{color:var(--k-food-ink)} .blk.tip .tag{color:var(--k-tip-ink)}
+.blk h3{margin:0 0 6px;font-size:18px;font-weight:700;line-height:1.4}
+.blk dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:8px 0 0;font-size:16px}
+.blk dt{color:var(--muted);white-space:nowrap}
+.blk dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.blk dd.code{font-family:var(--f-num);font-weight:700;font-size:18px;letter-spacing:.03em;color:var(--ink)}
+.blk ul{margin:8px 0 0;padding-left:20px;font-size:16px}
+.blk ul li{margin:3px 0}
+.blk .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.blk .acts .btn{background:var(--surface)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:13px;color:var(--muted);margin:0 0 10px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-1px;border:1px solid}
+.timeline{background:var(--surface);border:1px solid var(--line)!important;border-radius:14px;padding:0 16px!important}
+.timeline li:last-child{border-bottom:none}
+.sec-label{font-size:14px;font-weight:700;color:var(--muted);letter-spacing:.06em;margin:18px 0 8px}
 </style>
 </head>
 <body>
@@ -231,7 +256,7 @@ const gm=q=>/^https?:/.test(q)?q:"https://www.google.com/maps/search/?api=1&quer
 
 const DAYS=[
  {k:"DAY 1",date:"2026-11-26",md:"11/26",wd:"四",tag:"抵達日",title:"落地後電車一站，入住 OMO",drive:"電車 約 10 分",stay:"OMO 關西機場",
-  stops:[["22:30","關西機場落地，入境、領行李","","関西国際空港"],["23:15","JR／南海到臨空城站","1 站約 10 分，留意末班車時間","りんくうタウン駅"],["23:30","入住 OMO 關西機場","臨空城站步行 1 分","OMO関西空港 by 星野リゾート"],["前置","先通知飯店深夜抵達；館內 Lawson 買隔天早餐","",""]]},
+  stops:[["22:30","關西機場落地，入境、領行李","","関西国際空港"],["22:50","第 2 航廈搭免費接駁巴士到第 1 航廈／關西機場站","樂桃在第 2 航廈，車程約 10 分",""],["23:15","JR／南海到臨空城站","1 站約 5–8 分；JR 末班約 23:32、南海末班約 23:55","りんくうタウン駅"],["23:30","入住 OMO 關西機場","臨空城站 5 號出口，走空橋 1 分鐘","OMO関西空港 by 星野リゾート"],["前置","先通知飯店深夜抵達；館內 Lawson 買隔天早餐","",""]]},
  {k:"DAY 2",date:"2026-11-27",md:"11/27",wd:"五",tag:"奈良 → 南伊勢",title:"奈良公園繞一圈，傍晚入住南伊勢",drive:"合計 約 4 小時 15 分",stay:"南伊勢 Airbnb",
   stops:[["08:00","臨空城取車（兩台），出發往奈良","約 1 小時 15 分","トヨタレンタカー りんくうタウン駅前店"],["09:30","東大寺大佛殿","停縣營大佛前停車場","奈良県営大仏前駐車場"],["11:00","水谷茶屋：紅葉拍照、烏龍麵午餐","8 人可能要排隊","水谷茶屋 奈良"],["12:00","春日大社，走回停車場","","春日大社"],["13:00","出發前往伊勢","約 2 小時 15 分",""],["15:15","伊勢市區超市採買 → Airbnb check in","約 45 分，16:30 前到","三重県度会郡南伊勢町木谷"]]},
  {k:"DAY 3",date:"2026-11-28",md:"11/28",wd:"六",tag:"神宮．Skyline．二見浦",title:"神宮參拜，Skyline 上山後去二見浦",drive:"合計 約 2 小時 40 分",stay:"南伊勢 Airbnb",
@@ -240,21 +265,39 @@ const DAYS=[
   stops:[["09:30","Airbnb 出發，沿南伊勢海岸線往志摩","路邊觀景點隨停拍照",""],["10:30","橫山展望台俯瞰英虞灣","停車場旁平緩步道約 10 分，不用爬山","横山展望台"],["12:00","志摩地中海村：午餐、平地散步","橫山約 15 分","志摩地中海村"],["14:00","大王崎燈塔","約 20 分；漁村坡道步行 10 分，登塔可自選","大王埼灯台"],["15:15","回 Airbnb","約 50 分，日落前到",""]]},
  {k:"DAY 5",date:"2026-11-30",md:"11/30",wd:"一",tag:"返回大阪",title:"Sangen 懷石後北上，難波還車",drive:"合計 約 3 小時 10 分",stay:"Hotel Kojan Shinsaibashi",
   stops:[["09:30","Airbnb 退房出發","到伊勢市區約 50 分",""],["11:00","伊勢 Sangen 懷石午餐","8 人需提前訂位","Sangen 伊勢"],["13:00","出發前往大阪難波","約 2 小時 20 分",""],["15:30","難波周邊加油、還車（兩台）","滿油還車","トヨタレンタカー なんばバスターミナル"],["16:00","入住 Hotel Kojan Shinsaibashi","","Hotel Kojan Shinsaibashi"],["16:30","心齋橋、道頓堀購物","",""],["18:30","晚餐：壽司爐端 喜多郎壽司 道具屋筋橫丁店","8 人，18:30（autoreserve.com 訂位）","https://maps.app.goo.gl/7xcMAx5Y5Yp9t6YM8"],["晚上","飯後繼續逛道頓堀","",""],["提醒","Steven 今天先買明天的機場巴士票","",""]]},
- {k:"DAY 6",date:"2026-12-01",md:"12/01",wd:"二",tag:"返國日",title:"搭機場巴士直達關西機場",drive:"機場巴士 約 70 分",stay:"—",
-  stops:[["10:00","飯店退房，步行到難波機場巴士站","不用轉車，直達最方便",""],["10:35","搭機場巴士往關西機場","約 70 分；票由 Steven 前一天先買","https://www.kate.co.jp/"],["11:35","抵達關西機場第 1 航廈","12:30 前抵達；備案 11:10 發車、12:10 到","関西国際空港"],["建議","先辦退稅與託運，再逛免稅店","",""]]}
+ {k:"DAY 6",date:"2026-12-01",md:"12/01",wd:"二",tag:"返國日",title:"機場巴士直達關西機場，搭樂桃回台北",drive:"機場巴士 約 70 分",stay:"—",
+  stops:[["10:00","飯店退房（10:00 前），步行到 DOTON PLAZA","Hotel Kojan 步行約 10 分","DOTON PLAZA 大阪"],["10:35","DOTON PLAZA 搭機場巴士","¥1,800／人；票由 Steven 前一天先買","https://www.kate.co.jp/tcn/timetable/detail/ON"],["11:46","第 2 航廈下車","樂桃在第 2 航廈；第 1 航廈站是 11:35，不要提早下車","関西国際空港 第2ターミナル"],["13:25","開始辦理報到","國際線出發前 120–50 分鐘受理，14:35 截止",""],["15:25","MM027 起飛","17:55 抵達桃園第 1 航廈",""]]}
 ];
 const DRIVES=[["11/27","臨空城 → 奈良公園","70 km","1 小時 15 分","約 ¥1,500"],["11/27","奈良公園 → 伊勢市","130 km","2 小時 15 分","約 ¥1,500"],["11/27","伊勢市 → 南伊勢 Airbnb","40 km","45 分","—"],["11/28","Airbnb → 伊勢神宮","40 km","50 分","—"],["11/28","內宮 → Skyline → 二見浦 → Airbnb","75 km","1 小時 50 分","Skyline ¥1,270"],["11/29","Airbnb → 南伊勢海岸 → 橫山展望台","35 km","50 分","—"],["11/29","橫山 → 地中海村 → 大王崎 → Airbnb","55 km","1 小時 25 分","—"],["11/30","Airbnb → 伊勢 Sangen","40 km","50 分","—"],["11/30","伊勢 → 難波","150 km","2 小時 20 分","約 ¥4,000"]];
-const TIPS=["8 人配兩台車：7 人座＋5 人座，行李才放得下","加租 ETC 卡，走高速不用現金；兩台費用各自計算","台灣駕照＋日文譯本正本，每位駕駛都要帶","甲地租乙地還（臨空城取、難波還）要先確認異地還車費","Airbnb 確認可停 2 台；週六內宮停車場早滿","兩台車用通訊軟體語音群組，走散好會合"];
+const TIPS=["8 人配兩台車：7 人座＋5 人座，行李才放得下","兩台都加租 ETC 卡（約 ¥330／張），還車時刷卡結算過路費","台灣駕照＋日文譯本正本，每位駕駛都要帶","甲地租乙地還（臨空城取、難波還）要先確認異地還車費","Airbnb 確認可停 2 台；週六內宮停車場早滿","兩台車用通訊軟體語音群組，走散好會合"];
 const SPOTS=[["心齋橋筋商店街","藥妝、服飾一條街走到底，退稅櫃檯多"],["道頓堀．難波","晚餐與宵夜，8 人聚餐建議先訂位"],["黑門市場","上午營業為主，海鮮與水果現吃"],["Namba Parks．大丸","品牌與伴手禮一次補齊，雨天備案"]];
 const BOOKINGS=[
- {t:"TOYOTA 租車．W2（Voxy / Noah / Esquire）",price:83710,cat:"交通",day:"2026-11-27",
-  kv:[["取車","臨空城站前．11/27（五）08:30"],["還車","難波巴士中心．11/30（一）20:00"],["預約編號","99923088300"],["選項","禁菸、AT、完整套餐（含稅）"]]},
- {t:"TOYOTA 租車．C2（Corolla / Aqua / Yaris）",price:49610,cat:"交通",day:"2026-11-27",
-  kv:[["取車","臨空城站前．11/27（五）08:00"],["還車","難波巴士中心．11/30（一）20:00"],["預約編號","99923123800"],["選項","禁菸、AT、完整套餐（含稅）"]]},
- {t:"Hotel Kojan Shinsaibashi．4 房 1 晚",price:37388,cat:"住宿",day:"2026-11-30",
-  kv:[["入住","11/30（一）15:00–23:00"],["退房","12/1（二）10:00 前"],["地址","Chuo-ku Higashi Shinsaibashi 1-9-23, Osaka 542-0083"],["電話","+81 6 6575 7548"],["Booking 確認碼","6967.462.635"],["付款","現場以日圓付款（約 TWD 7,733，城市稅另計）"]],
-  map:"Hotel Kojan Shinsaibashi"}
+ {t:"TOYOTA 租車 7 人座 W2",price:80019,cat:"交通"},
+ {t:"TOYOTA 租車 5 人座 C2",price:49610,cat:"交通"},
+ {t:"Hotel Kojan Shinsaibashi 4 房 1 晚",price:37388,cat:"住宿"}
 ];
+
+/* Colored info blocks per day: flight / car / stay / food / tip */
+const INFO=[
+ [ {k:"flight",tag:"航班",t:"樂桃 MM028 桃園 → 關西",dl:[["起飛","11/26（四）18:50 桃園第 1 航廈"],["抵達","22:20 關西第 2 航廈"],["行李","每人手提 2 件合計 7kg；託運依各自訂單"]],note:"訂單編號在各自的樂桃確認信，自助報到機掃 QR Code 或輸入編號。"},
+   {k:"stay",tag:"住宿",t:"OMO 關西機場（星野集團）",dl:[["位置","臨空城站 5 號出口，空橋直達"],["提醒","先通知飯店深夜抵達；館內 24 小時超商可買早餐"]],map:"OMO関西空港 by 星野リゾート"},
+   {k:"tip",tag:"提醒",t:"深夜抵達",ul:["出關預計 23:15–23:30","JR 關空快速或南海電鐵都只坐 1 站到臨空城","JR 末班約 23:32、南海末班約 23:55"]} ],
+ [ {k:"car",tag:"租車",t:"TOYOTA 租車．臨空城站前店",dl:[["7 人座 W2","預約編號"],["","99923088300"],["取車","11/27 08:30（NOAH／VOXY／ESQUIRE）"],["5 人座 C2","預約編號"],["","99923123800"],["取車","11/27 08:00（YARIS／AQUA／COROLLA）"],["電話","072-463-0100"],["地址","泉佐野市りんくう往来南3 りんくうプレジャータウンシークル1F"]],codes:[1,4],map:"トヨタレンタカー りんくうタウン駅前店",book:0},
+   {k:"tip",tag:"取車流程",t:"08:00 – 08:30",ul:["08:00 OMO 退房，步行 3–5 分到門市，主要駕駛先辦手續","08:10 出示兩組預約編號，所有駕駛交台灣駕照正本＋日文譯本正本＋護照","08:10 加租 2 張 ETC 卡（約 ¥330／張）","08:20 拍照記錄車身刮痕，導航切中文","08:30 大行李放 7 人座第三排，兩車測試 LINE 通話後出發"]},
+   {k:"tip",tag:"兩車走散",t:"會合點：針 TRS 休息站",ul:["導航設針テラス（針 T.R.S）","兩台車開 LINE 語音群組"]},
+   {k:"stay",tag:"住宿",t:"南伊勢 Airbnb（3 晚）",dl:[["地址","三重縣度會郡南伊勢町木谷"],["入住","16:30 前抵達"],["停車","確認可停 2 台"]],map:"三重県度会郡南伊勢町木谷"} ],
+ [ {k:"stay",tag:"住宿",t:"南伊勢 Airbnb（第 2 晚）",dl:[["地址","三重縣度會郡南伊勢町木谷"]]},
+   {k:"tip",tag:"提醒",t:"週六神宮停車場早滿",ul:["08:30 準時出發","Skyline 收費 ¥1,270／台"]} ],
+ [ {k:"stay",tag:"住宿",t:"南伊勢 Airbnb（第 3 晚）",dl:[["地址","三重縣度會郡南伊勢町木谷"],["隔天","09:30 退房出發"]]} ],
+ [ {k:"food",tag:"訂位",t:"伊勢 Sangen 懷石午餐 11:00",dl:[["人數","8 人，需提前訂位"]],map:"Sangen 伊勢"},
+   {k:"car",tag:"還車",t:"TOYOTA 難波巴士中心店",dl:[["期限","11/30（一）20:00 前，兩台"],["地址","大阪市浪速区元町1-4-8"],["加油","門市 5 公里內加滿 Regular（紅色油槍），保留發票"],["ETC","過路費還車時刷卡結算"]],map:"トヨタレンタカー なんばバスターミナル店"},
+   {k:"stay",tag:"住宿",t:"Hotel Kojan Shinsaibashi（古燕飯店）",dl:[["Booking 確認碼"," "],["","6967.462.635"],["入住","11/30 15:00–23:00"],["退房","12/1 10:00 前"],["房間","4 間，10 位成人"],["費用","¥37,388（約 NT$7,733），現場付日幣"],["地址","大阪市中央區東心齋橋 1-9-23"],["電話","+81 6 6575 7548"],["車站","長堀橋站／心齋橋站步行 3–6 分"]],codes:[1],map:"Hotel Kojan Shinsaibashi",book:2},
+   {k:"food",tag:"訂位",t:"晚餐 18:30．喜多郎壽司 道具屋筋橫丁店",dl:[["人數","8 人"],["訂位","autoreserve.com"]],map:"https://maps.app.goo.gl/7xcMAx5Y5Yp9t6YM8"},
+   {k:"tip",tag:"提醒",t:"Steven 今天買明天的機場巴士票",ul:["DOTON PLAZA 10:35 班次，8 張"]} ],
+ [ {k:"flight",tag:"機場巴士",t:"DOTON PLAZA → 關西機場",dl:[["發車","10:35 DOTON PLAZA（道頓堀廣場）"],["抵達","11:35 第 1 航廈／11:46 第 2 航廈"],["票價","¥1,800／人，約 70 分"],["備案","11:10 發車，12:21 到第 2 航廈"]],link:["官方時刻表","https://www.kate.co.jp/tcn/timetable/detail/ON"]},
+   {k:"flight",tag:"航班",t:"樂桃 MM027 關西 → 桃園",dl:[["起飛","12/1（二）15:25 關西第 2 航廈"],["抵達","17:55 桃園第 1 航廈"],["報到","13:25–14:35"]],note:"先辦退稅與託運，再逛免稅店。"} ]
+];
+const KIND={flight:"#A9C0DB",car:"#E2C78F",stay:"#A9CDB2",food:"#E1B3A6",tip:"#BDB3D9"};
 const CATS=["餐飲","交通","住宿","門票","購物","其他"];
 
 /* ---------- Utils ---------- */
@@ -279,12 +322,21 @@ const ICONS={
  book:'<svg viewBox="0 0 24 24"><path d="M4 7h16v4a2 2 0 000 4v4H4v-4a2 2 0 000-4z"/><path d="M14 7v12" stroke-dasharray="2 2"/></svg>',
  ledger:'<svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>',
  settle:'<svg viewBox="0 0 24 24"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>'};
-const TABS=[["plan","行程"],["drive","車程"],["book","預訂"],["ledger","記帳"],["settle","結算"]];
+const TABS=[["plan","行程"],["drive","車程"],["ledger","記帳"],["settle","結算"]];
 function renderTabs(){
   document.getElementById("tabs").innerHTML=TABS.map(([k,l])=>`<a class="tab" href="#${k}" ${S.view===k?'aria-current="page"':''}>${ICONS[k]}<span>${l}</span></a>`).join("");
 }
 
 /* ---------- Views ---------- */
+function blockHTML(b){
+  const codes=b.codes||[];
+  const dl=b.dl?`<dl>${b.dl.map(([k,v],i)=>`<dt>${esc(k)}</dt><dd${codes.includes(i)?' class="code"':''}>${esc(v)}</dd>`).join("")}</dl>`:"";
+  const ul=b.ul?`<ul>${b.ul.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:"";
+  const acts=[b.map?`<a class="btn mini" href="${gm(b.map)}" target="_blank" rel="noopener">導航</a>`:"",
+    b.link?`<a class="btn mini" href="${b.link[1]}" target="_blank" rel="noopener">${esc(b.link[0])}</a>`:"",
+    b.book!=null?`<button class="btn mini" type="button" data-book="${b.book}">記入帳本</button>`:""].join("");
+  return `<article class="blk ${b.k}"><span class="tag">${esc(b.tag)}</span><h3>${esc(b.t)}</h3>${dl}${ul}${b.note?`<p class="note" style="margin:8px 0 0">${esc(b.note)}</p>`:""}${acts.trim()?`<div class="acts">${acts}</div>`:""}</article>`;
+}
 function viewPlan(){
   const d=DAYS[S.day], t=jstToday();
   return `<section class="view">
@@ -298,6 +350,9 @@ function viewPlan(){
   <div class="dayhead"><div class="big num">${d.md}</div><div class="meta"><div class="k num">${d.k}</div><div class="t">星期${d.wd}．${esc(d.tag)}</div></div></div>
   <h2 class="daytitle">${esc(d.title)}</h2>
   <div class="facts"><span class="pill car">車程 ${esc(d.drive)}</span><span class="pill">住 ${esc(d.stay)}</span></div>
+  <div class="legend"><span><i style="background:var(--k-flight);border-color:var(--k-flight-line)"></i>航班／巴士</span><span><i style="background:var(--k-car);border-color:var(--k-car-line)"></i>租車</span><span><i style="background:var(--k-stay);border-color:var(--k-stay-line)"></i>住宿</span><span><i style="background:var(--k-food);border-color:var(--k-food-line)"></i>訂位</span><span><i style="background:var(--k-tip);border-color:var(--k-tip-line)"></i>提醒</span></div>
+  <div class="blocks">${(INFO[S.day]||[]).map(blockHTML).join("")}</div>
+  <div class="sec-label">當日時間表</div>
   <ol class="timeline">${d.stops.map(([tm,tx,sm,q])=>`<li><span class="tm">${esc(tm)}</span><div class="tx"><b>${esc(tx)}</b>${sm?`<small>${esc(sm)}</small>`:""}</div>${q?`<a class="nav" href="${gm(q)}" target="_blank" rel="noopener">${/kate/.test(q)?"時刻表":"導航"}</a>`:"<span></span>"}</li>`).join("")}</ol>
   <p class="note" style="margin-top:10px">車程為概估，不含休息與塞車；11 月底日落約 16:50。</p>
   </section>`;
@@ -309,23 +364,14 @@ function viewDrive(){
   <tbody>${DRIVES.map(r=>`<tr><td class="d">${r[0]}</td><td>${esc(r[1])}</td><td class="n">${r[2]}</td><td class="n"><b>${r[3]}</b></td><td class="n">${r[4]}</td></tr>`).join("")}</tbody>
   <tfoot><tr><td></td><td>合計</td><td class="n">635 km</td><td class="n">約 12 小時 20 分</td><td class="n">約 ¥8,270</td></tr></tfoot></table></div>
   <p class="note">概估值，不含休息與塞車。南伊勢 Airbnb：三重縣度會郡南伊勢町木谷。</p>
-  <h2 style="font-size:20px">租車與高速公路重點</h2>
+  <h2 style="font-size:22px">租車費用</h2>
+  <article class="blk car" style="margin-bottom:18px"><span class="tag">TOYOTA 租車</span><h3>兩台合計 ¥129,629，每人約 ¥16,204</h3>
+    <dl><dt>7 人座 W2</dt><dd>¥80,019（含 5% 信用卡折扣、異地還車費 ¥2,200、完整套餐 ¥7,700）</dd><dt>5 人座 C2</dt><dd>¥49,610（含 5% 信用卡折扣、異地還車費 ¥2,200、完整套餐 ¥7,700）</dd><dt>付款</dt><dd>網路信用卡一次付清</dd><dt>取消</dt><dd>11/20 前免費；11/21–24 收 20%；11/25–26 收 30%；當日 50%</dd></dl>
+    <div class="acts"><button class="btn mini" type="button" data-book="0">記入帳本：W2</button><button class="btn mini" type="button" data-book="1">記入帳本：C2</button><a class="btn mini" href="https://rent.toyota.co.jp/zh-tw/" target="_blank" rel="noopener">TOYOTA 預約管理</a></div></article>
+  <h2 style="font-size:22px">租車與高速公路重點</h2>
   <ol class="tips">${TIPS.map((t,i)=>`<li><span class="i num">0${i+1}</span><span>${esc(t)}</span></li>`).join("")}</ol>
-  <h2 style="font-size:20px">大阪最後一晚：購物點</h2>
+  <h2 style="font-size:22px">大阪最後一晚：購物點</h2>
   <div class="spots">${SPOTS.map(([a,b])=>`<div><b>${esc(a)}</b><span>${esc(b)}</span></div>`).join("")}</div>
-  </section>`;
-}
-function viewBook(){
-  return `<section class="view">
-  <h2>預訂資訊</h2><p class="sub">取車時出示預約編號，並帶護照、台灣駕照與日文譯本正本。按「記入帳本」可帶入金額，再選付款人。</p>
-  ${BOOKINGS.map((b,i)=>`<article class="card">
-    <div class="row"><h3>${esc(b.t)}</h3><span class="price num">${yen(b.price)}</span></div>
-    <dl class="kv">${b.kv.map(([k,v])=>`<dt>${esc(k)}</dt><dd${/編號|確認碼/.test(k)?' class="code"':''}>${esc(v)}</dd>`).join("")}</dl>
-    <div class="acts"><button class="btn mini primary" type="button" data-book="${i}">記入帳本</button>${b.map?`<a class="btn mini" href="${gm(b.map)}" target="_blank" rel="noopener">地圖</a>`:''}${i<2?`<a class="btn mini" href="https://rent.toyota.co.jp/zh-tw/" target="_blank" rel="noopener">TOYOTA 租車網站</a>`:''}</div>
-  </article>`).join("")}
-  <article class="card"><div class="row"><h3>租車取消費</h3></div>
-    <dl class="kv"><dt>7 天以上</dt><dd>免費</dd><dt>3–6 天前</dt><dd>基本租車費 20%</dd><dt>1–2 天前</dt><dd>基本租車費 30%</dd><dt>當日或之後</dt><dd>基本租車費 50%</dd></dl>
-    <p class="note" style="margin:0">取消手續費上限：SUV ¥17,000、Wagon ¥20,000、其他 ¥13,000。</p></article>
   </section>`;
 }
 function dbBanner(){
@@ -400,7 +446,7 @@ function viewSettle(){
 /* ---------- Render & events ---------- */
 function render(){
   const main=document.getElementById("main");
-  main.innerHTML={plan:viewPlan,drive:viewDrive,book:viewBook,ledger:viewLedger,settle:viewSettle}[S.view]();
+  main.innerHTML={plan:viewPlan,drive:viewDrive,ledger:viewLedger,settle:viewSettle}[S.view]();
   renderTabs();
 }
 function route(){
@@ -447,7 +493,11 @@ document.addEventListener("submit",async e=>{
 
 /* ---------- Storage: Google Sheet via Apps Script, local fallback ---------- */
 const API=(window.TRIP_CONFIG&&window.TRIP_CONFIG.API_URL||"").trim();
-function normalize(x){return {id:String(x.id||""),title:String(x.title||""),amount:+x.amount||0,payer:String(x.payer||""),split:Array.isArray(x.split)?x.split.map(String):String(x.split||"").split(",").filter(Boolean),day:String(x.day||""),cat:String(x.cat||""),createdAt:+x.createdAt||0}}
+const MON={Jan:"01",Feb:"02",Mar:"03",Apr:"04",May:"05",Jun:"06",Jul:"07",Aug:"08",Sep:"09",Oct:"10",Nov:"11",Dec:"12"};
+function fixDay(d){d=String(d||"");if(/^\d{4}-\d{2}-\d{2}$/.test(d)||d==="pre")return d;
+  const m=d.match(/([A-Z][a-z]{2}) (\d{1,2}) (\d{4})/);if(m&&MON[m[1]])return m[3]+"-"+MON[m[1]]+"-"+m[2].padStart(2,"0");
+  const t=new Date(d);return isNaN(t)?d:new Date(t.getTime()+8*3600e3).toISOString().slice(0,10)}
+function normalize(x){return {id:String(x.id||""),title:String(x.title||""),amount:+x.amount||0,payer:String(x.payer||""),split:Array.isArray(x.split)?x.split.map(String):String(x.split||"").split(",").filter(Boolean),day:fixDay(x.day),cat:String(x.cat||""),createdAt:+x.createdAt||0}}
 function applyItems(items){S.expenses=(items||[]).map(normalize).filter(e=>e.id);sortExp();S.dbState="live";rerenderKeepingForm()}
 async function apiPost(body){
   /* text/plain avoids the CORS preflight Apps Script cannot answer */

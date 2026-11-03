@@ -1,5 +1,4 @@
-// 貼上 Google Apps Script 部署後的「網頁應用程式網址」（結尾是 /exec）
-// 留空的話，帳本只會存在各自的手機裡。
+// 共用帳本（Google Apps Script 網頁應用程式）
 window.TRIP_CONFIG = {
-  API_URL: ""
+  API_URL: "https://script.google.com/macros/s/AKfycbw0af7zw7Fv4bBXDRLuDxd3eoRG-yOPIkxBvfXGOJ_A7WW_RINTaEpdPFvyyRFa6SUD/exec"
 };
