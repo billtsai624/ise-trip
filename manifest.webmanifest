@@ -1,0 +1,15 @@
+{
+  "name": "大阪 → 伊勢 自駕 2026",
+  "short_name": "伊勢自駕",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F1F1EF",
+  "theme_color": "#E0371B",
+  "lang": "zh-Hant",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
