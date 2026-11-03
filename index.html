@@ -328,6 +328,9 @@ main[data-view="game"] input{font-size:20px;padding:12px}
 .reveal .word{font-size:72px}
 .reveal .hint{font-size:18px}
 .reveal .btn{font-size:20px;padding:14px 32px}
+
+.gback{position:sticky;top:calc(env(safe-area-inset-top,0px) + 66px);z-index:5;background:var(--bg);padding:8px 0;margin:-8px 0 4px}
+.gback .btn{font-size:17px;font-weight:700;padding:10px 18px;border-color:var(--accent);color:var(--accent)}
 </style>
 </head>
 <body>
@@ -629,6 +632,7 @@ function render(){
 }
 function route(){
   const h=(location.hash||"").slice(1);
+  if(h==="game"&&S.view==="game")S.gview="home";
   S.view=TABS.some(t=>t[0]===h)?h:"plan";
   S.pendingDelete=null;S.pendingPhoto=null;render();window.scrollTo(0,0);if(S.view==="photos")refreshPhotos();if(S.view==="game"){gGet("spy");gGet("nhie");gGet("mlt");gPoll()}
 }
@@ -747,7 +751,7 @@ function gCheck(){const a=gAlive();const bad=a.filter(n=>G.roles[n]!=="civ").len
   if(bad===0)return "civ";if(bad>=good)return "spy";return null}
 const ROLE_NAME={civ:"平民",spy:"間諜",blank:"白板"};
 function viewSpyLocal(){
-  if(G.phase==="setup")return `<section class="view"><button class="btn mini" type="button" data-gview="home">← 遊戲選單</button><h2 style="margin-top:10px">誰是間諜（一支手機）</h2><p class="sub">一支手機輪流傳，看完自己的詞再交給下一位。</p>
+  if(G.phase==="setup")return `<section class="view"><h2 style="margin-top:10px">誰是間諜（一支手機）</h2><p class="sub">一支手機輪流傳，看完自己的詞再交給下一位。</p>
   <div class="game-card"><div class="label" style="margin-bottom:8px">誰要玩（${G.players.length} 人）</div>
     <div class="chips">${NAMES.map(n=>`<button type="button" class="chip" data-gp="${n}" aria-pressed="${G.players.includes(n)}">${av(n)}${n}</button>`).join("")}</div></div>
   <div class="game-card"><div class="label" style="margin-bottom:8px">間諜人數</div>
@@ -820,11 +824,11 @@ let gTimer=null;
 function gPoll(){clearInterval(gTimer);gTimer=setInterval(()=>{if(S.view!=="game"||document.visibilityState!=="visible")return;if(S.gview==="spy")gGet("spy");else if(S.gview==="nhie")gGet("nhie");else if(S.gview==="mlt")gGet("mlt");else if(S.gview==="home"){gGet("spy");gGet("nhie");gGet("mlt")}},3000)}
 function meBar(){const me=ls.get("ise.me","Bill");return `<div class="mebar"><span>我是</span><select id="gMe">${NAMES.map(n=>`<option ${n===me?"selected":""}>${n}</option>`).join("")}</select></div>`}
 function viewGame(){
-  if(S.gview==="spylocal")return viewSpyLocal();
+  if(S.gview==="spylocal")return withHome(viewSpyLocal());
   if(!API)return `<section class="view"><h2>遊戲</h2><p class="status err">還沒設定共用帳本，只能用一支手機玩。</p><button class="btn primary" type="button" data-gview="spylocal">誰是間諜（一支手機）</button></section>`;
-  if(S.gview==="spy")return viewSpy();
-  if(S.gview==="nhie")return viewNhie();
-  if(S.gview==="mlt")return viewMlt();
+  if(S.gview==="spy")return withHome(viewSpy());
+  if(S.gview==="nhie")return withHome(viewNhie());
+  if(S.gview==="mlt")return withHome(viewMlt());
   const ml=S.mlt&&S.mlt.phase&&S.mlt.phase!=="none"&&S.mlt.phase!=="end";
   const sl=S.spy&&S.spy.phase&&S.spy.phase!=="none"&&S.spy.phase!=="end",nl=S.nhie&&S.nhie.phase&&S.nhie.phase!=="none"&&S.nhie.phase!=="end";
   return `<section class="view"><h2>遊戲</h2><p class="sub">每個人用自己的手機玩，畫面會自動同步。先選好「我是」誰。</p>${meBar()}
@@ -835,7 +839,11 @@ function viewGame(){
     <button class="btn" type="button" data-gview="spylocal">沒網路時：誰是間諜（一支手機輪流）</button>
   </div></section>`;
 }
-function back(){return `<button class="btn mini" type="button" data-gview="home">← 遊戲選單</button>`}
+function withHome(h){
+  h=h.replace(/^<section class="view">(\s*<div class="gback">[\s\S]*?<\/div>)?/,'<section class="view">'+back());
+  return h.replace(/<\/section>\s*$/,`<button class="btn" type="button" data-gview="home" style="width:100%;margin-top:18px;padding:14px;font-size:18px">回遊戲主頁</button></section>`);
+}
+function back(){return `<div class="gback"><button class="btn" type="button" data-gview="home">← 回遊戲主頁</button></div>`}
 /* ----- 誰是間諜 ----- */
 function viewSpy(){
   const g=S.spy,me=ls.get("ise.me","Bill"),c=S.spyCfg;
@@ -1014,6 +1022,7 @@ document.addEventListener("click",async e=>{
   if(t.id==="mltAgain"){S.mltNew=true;render()}
 });
 
+document.addEventListener("click",e=>{const a=e.target.closest('.tab[href="#game"]');if(a&&S.view==="game"&&S.gview!=="home"){e.preventDefault();S.gview="home";render();window.scrollTo(0,0)}});
 /* ---------- Day map ---------- */
 let MAP=null,meMarker=null,meCircle=null,lastPos=null,watchId=null;
 function dayPoints(i){
