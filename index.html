@@ -368,6 +368,40 @@ main[data-view="game"] input{font-size:20px;padding:12px}
 .wheel .arrow::before{content:"";position:absolute;left:-6px;top:-95px;width:12px;height:95px;border-radius:6px;background:var(--accent)}
 .wheel .arrow::after{content:"";position:absolute;left:-14px;top:-14px;width:28px;height:28px;border-radius:50%;background:var(--ink)}
 @media (prefers-reduced-motion:reduce){.wheel .arrow{transition:none}}
+
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--line);border-radius:12px;padding:4px;margin:4px 0 14px}
+.seg button{border:none;background:none;padding:10px 0;font:700 17px var(--f-body);color:var(--muted);border-radius:9px;cursor:pointer}
+.seg button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.fxbox{display:grid;gap:10px}
+.fxrow{display:grid;grid-template-columns:auto auto 1fr;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.fxrow.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.fxn{display:flex;flex-direction:column;min-width:56px}
+.fxn b{font-size:19px}
+.fxn small{font-size:13px;color:var(--muted);font-family:var(--f-num)}
+.fxsym{font:700 18px var(--f-num);color:var(--muted)}
+.fxrow input{font:700 26px var(--f-num);text-align:right;border:none;background:transparent;padding:4px 0;min-width:0}
+.fxrow input:focus{outline:none}
+.fxrates{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-size:15px}
+.fxrates div{display:flex;flex-direction:column}
+.fxrates span{color:var(--muted);font-size:13px}
+.fxrates b{font-size:17px}
+.tbscreen{border-radius:18px;padding:26px 18px;text-align:center;margin:12px 0}
+.tbscreen.run{background:var(--accent);color:#fff;animation:pulse 1s ease-in-out infinite}
+.tbscreen.boom{background:var(--ink);color:var(--bg)}
+.tbscreen .t1{font:700 44px/1.2 var(--f-display)}
+.tbscreen .t2{font-size:19px;margin-top:8px;opacity:.9}
+@keyframes pulse{50%{transform:scale(1.02)}}
+@media (prefers-reduced-motion:reduce){.tbscreen.run{animation:none}}
+.pcards{display:grid;gap:8px;margin-top:12px}
+.pcard{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:19px}
+.pcard .face{margin-left:auto;font:700 26px var(--f-num);min-width:64px;text-align:center;border:2px solid var(--ink);border-radius:10px;padding:4px 8px;background:#fff;color:#222}
+.pcard .face.red{color:#C0392B}
+.pcard.low{border-color:var(--accent);background:var(--accent-soft)}
+.pcard.high{border-color:var(--good);background:var(--good-soft)}
+.pcard .tagx{font-size:14px;font-weight:700}
+
+.stopbtn{width:100%;margin-top:18px;padding:14px;font-size:18px;font-weight:700;border-color:var(--accent);color:var(--accent);background:var(--surface)}
+.stopbtn.sure{background:var(--accent);color:#fff}
 </style>
 </head>
 <body>
@@ -467,7 +501,7 @@ const KIND={flight:"#A9C0DB",car:"#E2C78F",stay:"#A9CDB2",food:"#E1B3A6",tip:"#B
 /* Currencies: everything is converted through TWD. rates = units of X per 1 TWD */
 const CUR={TWD:{sym:"NT$",name:"台幣",dp:0},JPY:{sym:"¥",name:"日圓",dp:0},HKD:{sym:"HK$",name:"港幣",dp:1}};
 const CUR_KEYS=["JPY","TWD","HKD"];
-const DEFAULT_RATES={TWD:1,JPY:4.7,HKD:0.24};
+const DEFAULT_RATES={TWD:1,JPY:4.7,HKD:0.24,CNY:0.22};
 function money(v,c){const d=CUR[c]||CUR.JPY;const k=Math.pow(10,d.dp);const r=Math.round(v*k)/k;return (r<0?"-":"")+d.sym+Math.abs(r).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:d.dp})}
 function toBase(a,c){return a/(S.rates[c]||1)}
 function fromBase(v,c){return v*(S.rates[c]||1)}
@@ -498,8 +532,9 @@ const ICONS={
  ledger:'<svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>',
  photos:'<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="2.5"/><path d="M8.5 6l1.5-2.5h4L15.5 6"/><circle cx="12" cy="13" r="3.6"/></svg>',
  game:'<svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="4"/><path d="M4.5 20c1.2-3.6 4-5.5 7.5-5.5s6.3 1.9 7.5 5.5"/><path d="M8.5 8.5h7"/></svg>',
+ fx:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9 8.5l3 3.5 3-3.5M12 12v5M9.5 13h5M9.5 15.5h5"/></svg>',
  settle:'<svg viewBox="0 0 24 24"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>'};
-const TABS=[["plan","行程"],["drive","車程"],["photos","相簿"],["ledger","記帳"],["settle","結算"],["game","遊戲"]];
+const TABS=[["plan","行程"],["drive","車程"],["photos","相簿"],["ledger","記帳"],["fx","匯率"],["game","遊戲"]];
 function renderTabs(){
   document.getElementById("tabs").innerHTML=TABS.map(([k,l])=>`<a class="tab" href="#${k}" ${S.view===k?'aria-current="page"':''}>${ICONS[k]}<span>${l}</span></a>`).join("");
 }
@@ -586,7 +621,7 @@ function viewLedger(){
   const other=S.expenses.filter(e=>!DAYS.some(d=>d.date===e.day));
   if(other.length)groups.push({d:{md:"行前",k:"其他"},items:other});
   return `<section class="view">
-  <h2>記帳</h2>${dbBanner()}
+  ${dbBanner()}
   <form class="add" id="addForm" novalidate>
     <div class="f2">
       <div class="field"><label for="fTitle">項目</label><input id="fTitle" maxlength="40" placeholder="例：水谷茶屋午餐" value="${esc(f.title)}"></div>
@@ -631,6 +666,11 @@ function computeSettle(){
   }
   return {total,net,tx};
 }
+function viewMoney(){
+  const sub=S.lsub==="settle"?"settle":"ledger";
+  const seg=`<h2>記帳</h2><div class="seg" role="tablist"><button type="button" role="tab" data-lsub="ledger" aria-selected="${sub==="ledger"}">記一筆</button><button type="button" role="tab" data-lsub="settle" aria-selected="${sub==="settle"}">結算</button></div>`;
+  return (sub==="settle"?viewSettle():viewLedger()).replace('<section class="view">','<section class="view">'+seg);
+}
 function viewSettle(){
   const {total,net,tx}=computeSettle();const C=S.settleCur;
   const M=v=>money(fromBase(v,C),C);
@@ -638,7 +678,7 @@ function viewSettle(){
   const max=Math.max(1,...net.map(x=>Math.abs(x.v)));
   const byCur=CUR_KEYS.map(c=>[c,S.expenses.filter(e=>e.cur===c).reduce((s,e)=>s+e.amount,0)]).filter(x=>x[1]);
   return `<section class="view">
-  <h2>結算</h2><p class="sub">不同幣別的花費會自動換算，用最少次數轉帳就能結清。</p>
+  <p class="sub">不同幣別的花費會自動換算，用最少次數轉帳就能結清。</p>
   <div class="field" style="margin-bottom:12px"><label>用哪個幣別結算</label><div class="chips">${CUR_KEYS.map(c=>`<button type="button" class="chip cat" data-scur="${c}" aria-pressed="${c===C}">${CUR[c].name} ${CUR[c].sym}</button>`).join("")}</div></div>
   <div class="total"><div><span class="label">全團總花費</span><div class="big num">${M(total)}</div>${byCur.length>1?`<small style="color:var(--muted)">${byCur.map(([c,v])=>money(v,c)).join(" ＋ ")}</small>`:""}</div><div style="text-align:right"><span class="label">平均每人</span><div class="num" style="font-weight:700;font-size:18px">${M(total/NAMES.length)}</div></div></div>
   <p class="note" style="margin:-4px 0 16px">匯率：1 台幣 = ${S.rates.JPY.toFixed(2)} 日圓 = ${S.rates.HKD.toFixed(3)} 港幣${S.rateDate?`（${esc(S.rateDate)} 自動更新）`:"（預設值，連上網路後自動更新）"}</p>
@@ -652,39 +692,61 @@ function viewSettle(){
 }
 async function loadRates(){
   try{const r=await fetch("https://open.er-api.com/v6/latest/TWD");const j=await r.json();
-    if(j&&j.rates&&j.rates.JPY&&j.rates.HKD){S.rates={TWD:1,JPY:j.rates.JPY,HKD:j.rates.HKD};
+    if(j&&j.rates&&j.rates.JPY&&j.rates.HKD){S.rates={TWD:1,JPY:j.rates.JPY,HKD:j.rates.HKD,CNY:j.rates.CNY||DEFAULT_RATES.CNY};
       const d=new Date((j.time_last_update_unix||Date.now()/1000)*1000);S.rateDate=(d.getMonth()+1)+"/"+d.getDate();
-      ls.set("ise.rates",{rates:S.rates,date:S.rateDate});if(S.view==="settle"||S.view==="ledger")rerenderKeepingForm()}}
-  catch(e){}
+      S.rateTime=d.getHours()+":"+String(d.getMinutes()).padStart(2,"0");ls.set("ise.rates",{rates:S.rates,date:S.rateDate});if(S.view==="ledger")rerenderKeepingForm();if(S.view==="fx")fxRefreshUI()}}
+  catch(e){if(S.view==="fx"){const n=document.getElementById("fxNote");if(n)n.textContent="暫時抓不到最新匯率，先用上次的匯率"}}
 }
+/* ---------- 即時匯率換算 ---------- */
+const FXC=[{k:"JPY",name:"日圓",sym:"¥",dp:0},{k:"TWD",name:"台幣",sym:"NT$",dp:0},{k:"HKD",name:"港幣",sym:"HK$",dp:2},{k:"CNY",name:"人民幣",sym:"CN¥",dp:2}];
+S.fx=ls.get("ise.fx",{cur:"JPY",val:"1000"});
+function fxVal(c){const base=+S.fx.val||0;const v=conv(base,S.fx.cur,c.k);const k=Math.pow(10,c.dp);return S.fx.val===""?"":String(Math.round(v*k)/k)}
+function viewFx(){
+  return `<section class="view"><h2>即時匯率</h2><p class="sub">在任何一格輸入金額，其他幣別會自動換算。</p>
+  <div class="fxbox">${FXC.map(c=>`<label class="fxrow ${c.k===S.fx.cur?"on":""}" for="fx_${c.k}"><span class="fxn"><b>${c.name}</b><small>${c.k}</small></span><span class="fxsym">${c.sym}</span><input id="fx_${c.k}" data-fx="${c.k}" inputmode="decimal" autocomplete="off" value="${c.k===S.fx.cur?esc(S.fx.val):fxVal(c)}"></label>`).join("")}</div>
+  <div class="chips" style="margin:12px 0 4px">${[1000,5000,10000,50000].map(v=>`<button type="button" class="chip cat" data-fxq="${v}">¥${v.toLocaleString("en-US")}</button>`).join("")}<button type="button" class="chip cat" data-fxq="clear">清除</button></div>
+  <div class="game-card" style="margin-top:12px"><div class="label" style="margin-bottom:8px">目前匯率</div>
+    <div class="fxrates">${["JPY","HKD","CNY"].map(k=>{const c=FXC.find(x=>x.k===k);return `<div><span>1 台幣</span><b class="num">${(S.rates[k]).toFixed(k==="JPY"?2:3)} ${c.name}</b></div><div><span>1 ${c.name}</span><b class="num">${(1/S.rates[k]).toFixed(k==="JPY"?3:2)} 台幣</b></div>`}).join("")}</div>
+    <p class="note" id="fxNote" style="margin:10px 0 0">${S.rateDate?`${esc(S.rateDate)} ${esc(S.rateTime||"")} 更新的國際匯率；銀行或換匯店的實際匯率會差一點。`:"使用預設匯率，連上網路後會自動更新。"}</p>
+    <button class="btn mini" type="button" id="fxReload" style="margin-top:10px">重新抓匯率</button></div></section>`;
+}
+function fxRefreshUI(){if(S.view!=="fx")return;const ae=document.activeElement;if(ae&&ae.dataset&&ae.dataset.fx){FXC.forEach(c=>{if(c.k!==S.fx.cur){const el=document.getElementById("fx_"+c.k);if(el)el.value=fxVal(c)}})}else render()}
+document.addEventListener("input",e=>{const k=e.target.dataset&&e.target.dataset.fx;if(!k)return;
+  S.fx={cur:k,val:e.target.value.replace(/[^\d.]/g,"")};ls.set("ise.fx",S.fx);
+  FXC.forEach(c=>{const el=document.getElementById("fx_"+c.k);if(!el)return;el.closest(".fxrow").classList.toggle("on",c.k===k);if(c.k!==k)el.value=fxVal(c)})});
+document.addEventListener("click",e=>{if(S.view!=="fx")return;const t=e.target.closest("[data-fxq],#fxReload");if(!t)return;
+  if(t.id==="fxReload"){const n=document.getElementById("fxNote");if(n)n.textContent="更新中…";loadRates();return}
+  S.fx=t.dataset.fxq==="clear"?{cur:"JPY",val:""}:{cur:"JPY",val:t.dataset.fxq};ls.set("ise.fx",S.fx);render()});
 
 /* ---------- Render & events ---------- */
 function render(){
   const main=document.getElementById("main");
   if(S.view!=="plan"&&MAP){MAP.remove();MAP=null;meMarker=null;meCircle=null}
   main.dataset.view=S.view;
-  main.innerHTML={plan:viewPlan,drive:viewDrive,photos:viewPhotos,game:viewGame,ledger:viewLedger,settle:viewSettle}[S.view]();
+  main.innerHTML={plan:viewPlan,drive:viewDrive,photos:viewPhotos,game:viewGame,ledger:viewMoney,fx:viewFx}[S.view]();
   if(S.view==="plan")setTimeout(initMap,0);
   renderTabs();
 }
 function route(){
-  const h=(location.hash||"").slice(1);
+  let h=(location.hash||"").slice(1);
+  if(h==="settle"){h="ledger";S.lsub="settle"}
   if(h==="game"&&S.view==="game")S.gview="home";
   S.view=TABS.some(t=>t[0]===h)?h:"plan";
-  S.pendingDelete=null;S.pendingPhoto=null;render();window.scrollTo(0,0);if(S.view==="photos")refreshPhotos();if(S.view==="game"){gGet("spy");gGet("nhie");gGet("mlt");gPoll()}
+  S.pendingDelete=null;S.pendingPhoto=null;if(S.view==="fx")loadRates();render();window.scrollTo(0,0);if(S.view==="photos")refreshPhotos();if(S.view==="game"){gGet("spy");gGet("nhie");gGet("mlt");gPoll()}
 }
 window.addEventListener("hashchange",route);
 
 document.addEventListener("click",e=>{
-  const t=e.target.closest("[data-day],[data-cat],[data-cur],[data-scur],[data-split],[data-book],[data-del],#allBtn,#installBtn,#closeSheet,#copyUrl,.sheet");
+  const t=e.target.closest("[data-lsub],[data-day],[data-cat],[data-cur],[data-scur],[data-split],[data-book],[data-del],#allBtn,#installBtn,#closeSheet,#copyUrl,.sheet");
   if(!t)return;
+  if(t.dataset.lsub){syncForm();S.lsub=t.dataset.lsub;S.pendingDelete=null;render();return}
   if(t.dataset.day!=null){S.day=+t.dataset.day;ls.set("ise.day",S.day);render();return}
   if(t.dataset.cat){syncForm();S.form.cat=t.dataset.cat;render();return}
   if(t.dataset.cur){syncForm();S.form.cur=t.dataset.cur;ls.set("ise.cur",t.dataset.cur);render();return}
   if(t.dataset.scur){S.settleCur=t.dataset.scur;ls.set("ise.scur",t.dataset.scur);render();return}
   if(t.dataset.split){syncForm();const n=t.dataset.split,s=S.form.split;S.form.split=s.includes(n)?s.filter(x=>x!==n):NAMES.filter(x=>s.includes(x)||x===n);render();return}
   if(t.id==="allBtn"){syncForm();S.form.split=S.form.split.length===NAMES.length?[]:[...NAMES];render();return}
-  if(t.dataset.book!=null){const b=BOOKINGS[+t.dataset.book];Object.assign(S.form,{title:b.t,amount:String(b.price),cur:"JPY",cat:b.cat,day:"pre",split:[...NAMES]});location.hash="ledger";return}
+  if(t.dataset.book!=null){const b=BOOKINGS[+t.dataset.book];Object.assign(S.form,{title:b.t,amount:String(b.price),cur:"JPY",cat:b.cat,day:"pre",split:[...NAMES]});S.lsub="ledger";location.hash="ledger";return}
   if(t.dataset.del){const id=t.dataset.del;if(S.pendingDelete===id){removeExpense(id)}else{S.pendingDelete=id;render()}return}
   if(t.id==="installBtn"){document.getElementById("urlField").value=location.href.split("#")[0];document.getElementById("sheet").hidden=false;return}
   if(t.id==="closeSheet"||(t.classList.contains("sheet")&&e.target===t)){document.getElementById("sheet").hidden=true;return}
@@ -744,7 +806,7 @@ async function removeExpense(id){
 }
 function sortExp(){S.expenses.sort((a,b)=>(a.day||"").localeCompare(b.day||"")||(a.createdAt||0)-(b.createdAt||0))}
 function rerenderKeepingForm(){
-  if(S.view!=="ledger"&&S.view!=="settle")return;
+  if(S.view!=="ledger")return;
   const ae=document.activeElement,active=ae&&ae.id;
   if(active==="fTitle"||active==="fAmt"||active==="fRate")return; /* don't disturb typing; next poll catches up */
   syncForm();render();
@@ -863,9 +925,9 @@ function meBar(){const me=ls.get("ise.me","Bill");return `<div class="mebar"><sp
 function viewGame(){
   if(S.gview==="spylocal")return withHome(viewSpyLocal());
   if(!API&&!["rules"].includes(S.gview)&&!MINI.some(g=>g.id===S.gview&&!["spy","nhie","mlt"].includes(g.id)))return `<section class="view"><h2>遊戲</h2><p class="status err">還沒設定共用帳本，只能用一支手機玩。</p><button class="btn primary" type="button" data-gview="spylocal">誰是間諜（一支手機）</button>${miniHome()}</section>`;
-  if(S.gview==="spy")return withHome(viewSpy());
-  if(S.gview==="nhie")return withHome(viewNhie());
-  if(S.gview==="mlt")return withHome(viewMlt());
+  if(S.gview==="spy")return withHome(withStop(viewSpy(),"spy"));
+  if(S.gview==="nhie")return withHome(withStop(viewNhie(),"nhie"));
+  if(S.gview==="mlt")return withHome(withStop(viewMlt(),"mlt"));
   if(S.gview==="rules")return withHome(viewRules());
   if(MINI.some(g=>g.id===S.gview))return withHome(viewMini(S.gview));
   const ml=S.mlt&&S.mlt.phase&&S.mlt.phase!=="none"&&S.mlt.phase!=="end";
@@ -878,6 +940,11 @@ function viewGame(){
     <button class="gpick" type="button" data-gview="mlt"><span class="gicon"><svg viewBox="0 0 48 48"><circle cx="14" cy="16" r="5"/><circle cx="34" cy="16" r="5"/><circle cx="24" cy="12" r="5"/><path d="M5 38c1-7 5-11 9-11M43 38c-1-7-5-11-9-11M14 40c1-8 5-12 10-12s9 4 10 12"/></svg></span><span class="gtxt"><h3>誰最有可能</h3><p>每題「誰最有可能……」，大家投給最符合的人，看誰最常被選中。</p>${ml?'<span class="live">進行中，點進去加入</span>':""}</span></button>
     <button class="btn" type="button" data-gview="spylocal">沒網路時：誰是間諜（一支手機輪流）</button>
   </div>${miniHome()}</section>`;
+}
+function withStop(h,kind){
+  const g=S[kind];if(!g||!g.phase||g.phase==="none"||g.phase==="end"||S[kind+"New"])return h;
+  const sure=S.stopConfirm===kind;
+  return h.replace(/<\/section>\s*$/,`<button class="btn stopbtn ${sure?"sure":""}" type="button" data-gstop="${kind}">${sure?"確定終止？大家的畫面都會回到開新局":"終止遊戲"}</button></section>`);
 }
 function withHome(h){
   h=h.replace(/^<section class="view">(\s*<div class="gback">[\s\S]*?<\/div>)?/,'<section class="view">'+back());
@@ -976,6 +1043,13 @@ function viewNhie(){
       <button class="btn primary" type="button" id="nhieNext">下一位出題</button></div>${board}</section>`;
   return `<section class="view">${head}<div class="game-card"><p class="result">${g.winner?esc(g.winner)+" 獲勝！":"遊戲結束"}</p></div>${board}<button class="btn primary" type="button" id="nhieAgain">開新的一局</button></section>`;
 }
+document.addEventListener("click",async e=>{
+  const t=e.target.closest("[data-gstop]");
+  if(!t){if(S.stopConfirm&&S.view==="game"&&!e.target.closest(".stopbtn")){S.stopConfirm=null}return}
+  const k=t.dataset.gstop;
+  if(S.stopConfirm!==k){S.stopConfirm=k;render();return}
+  S.stopConfirm=null;S.spyNew=false;S.nhieNew=false;S.mltNew=false;await gPost({action:k+"_reset"});
+});
 document.addEventListener("change",e=>{if(e.target.id==="gMe"){ls.set("ise.me",e.target.value);if(S.gview==="spy")gGet("spy");else render()}});
 document.addEventListener("input",e=>{if(e.target.id==="spyWord")S.spyCfg.word=e.target.value;if(e.target.id==="spyWord2")S.spyCfg.spyWord=e.target.value;if(e.target.id==="nhieQ")S.nhieDraft=e.target.value});
 document.addEventListener("click",async e=>{
@@ -1064,7 +1138,7 @@ document.addEventListener("click",async e=>{
 
 document.addEventListener("click",e=>{const a=e.target.closest('.tab[href="#game"]');if(a&&S.view==="game"&&S.gview!=="home"){e.preventDefault();S.gview="home";render();window.scrollTo(0,0)}});
 
-/* ---------- 10 種喝酒小遊戲 ---------- */
+/* ---------- 喝酒小遊戲 ---------- */
 const MINI=[
  {id:"spy",name:"誰是間諜",sub:"描述詞語抓間諜",app:"多人連線",rules:["大部分人拿到同一個詞，間諜拿到相近的詞","每人輪流用一句話描述自己的詞，不能直接說出來","每輪投票淘汰一人"],drink:"間諜贏：平民每人喝一口；平民贏：間諜喝"},
  {id:"nhie",name:"我有你沒有",sub:"說出你做過的事",app:"多人連線",rules:["輪到的人說一件「我有做過」的事","沒做過的人扣一條命","命用完就出局"],drink:"每扣一條命喝一口"},
@@ -1075,7 +1149,8 @@ const MINI=[
  {id:"king",name:"國王遊戲",sub:"抽號碼聽國王命令",app:"手機發號碼",rules:["每人偷看手機抽到的身分，一人是國王，其他人是號碼","國王不知道誰是幾號，直接用號碼下命令，例如「2 號和 5 號乾杯」","被點到號碼的人一定要做"],drink:"國王的命令就是規則"},
  {id:"spin",name:"轉酒瓶",sub:"轉到誰就是誰",app:"手機轉盤",rules:["選好在場的人，按「轉」","指針停在誰，誰就要接受挑戰","可以搭配真心話大冒險一起玩"],drink:"被轉到的人喝一口或接受挑戰"},
  {id:"seven",name:"拍七",sub:"數數字遇 7 拍手",app:"",rules:["大家輪流從 1 開始報數","遇到 7 的倍數（7、14、21…）或含有 7 的數字（17、27…）不能說，要拍手","拍手後換方向繼續數","說錯、拍錯或停太久就輸"],drink:"出錯的人喝，然後從 1 重新開始"},
- {id:"zoo",name:"逛三園",sub:"輪流說出同類東西",app:"手機出主題",rules:["大家一起喊「逛三園，什麼園」","出題的人說主題，例如「動物園」","輪流說一個屬於主題的東西，不能重複、不能卡住","按「給我一個主題」可以抽主題"],drink:"卡住或重複的人喝"}
+ {id:"tbomb",name:"傳手機炸彈",sub:"手機隨時會爆炸",app:"手機計時",rules:["抽一個主題（例如「水果」）後按開始","拿到手機的人說一個符合主題的東西，說完才能把手機傳給下一位","手機會在 10～45 秒之間隨機爆炸，看不到倒數","說不出來或重複的人不能傳"],drink:"手機爆炸時拿在手上的人喝"},
+ {id:"cards",name:"抽牌比大小",sub:"每人一張牌，最小的喝",app:"手機發牌",rules:["選好要玩的人，按「發牌」","每人拿到一張牌，大小順序 2 最小、A 最大","點數一樣比花色：♣ < ♦ < ♥ < ♠"],drink:"最小的人喝；最大的人可以指定一個人陪喝"}
 ];
 const MICON={
  dice:'<svg viewBox="0 0 48 48"><rect x="8" y="8" width="32" height="32" rx="7"/><circle cx="17" cy="17" r="2.5"/><circle cx="31" cy="31" r="2.5"/><circle cx="24" cy="24" r="2.5"/></svg>',
@@ -1084,19 +1159,20 @@ const MICON={
  king:'<svg viewBox="0 0 48 48"><path d="M8 34l3-20 9 9 4-12 4 12 9-9 3 20z"/><path d="M8 40h32"/></svg>',
  spin:'<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="16"/><path d="M24 24l9-9"/><circle cx="24" cy="24" r="3"/></svg>',
  seven:'<svg viewBox="0 0 48 48"><path d="M14 12h20l-11 26"/></svg>',
- zoo:'<svg viewBox="0 0 48 48"><path d="M8 38V20l16-10 16 10v18"/><path d="M18 38V26h12v12"/></svg>'};
+ tbomb:'<svg viewBox="0 0 48 48"><rect x="14" y="6" width="20" height="36" rx="4"/><path d="M20 36h8"/><path d="M24 14v8l4 3"/></svg>',
+ cards:'<svg viewBox="0 0 48 48"><rect x="8" y="12" width="20" height="28" rx="3" transform="rotate(-10 18 26)"/><rect x="20" y="8" width="20" height="28" rx="3"/><path d="M30 18l-3 4 3 4 3-4z"/></svg>'};
 const TRUTHS=["最近一次說謊是什麼時候？","手機裡最後一張照片是什麼？","在場誰最懂你？","做過最丟臉的事是什麼？","第一份工作的薪水多少？","最想跟在場誰交換人生一天？","最怕什麼動物？","最近一次哭是為了什麼？","學生時代最叛逆的事？","最常用的手機 App 是哪個？","最不擅長的事是什麼？","如果中樂透第一件事做什麼？","對在場誰的第一印象最差？","最想再去一次的國家？","睡覺會不會說夢話？","最近最想買的東西？","小時候的綽號是什麼？","最後一次被罵是因為什麼？","心目中最完美的假日怎麼過？","工作上最得意的一件事？","手機桌布是什麼？","最近一次熬夜在做什麼？","最喜歡在場誰的穿搭？","最想學會的技能？","人生做過最衝動的決定？"];
 const DARES=["模仿在場一個人，讓大家猜是誰","用台語介紹自己 30 秒","跟左邊的人乾杯","唱一段歌（10 秒以上）","做 10 個深蹲","用三個詞稱讚右邊的人","把手機最近一張照片給大家看","跳一段 10 秒的舞","用日文點一份菜（店員不用真的聽到）","學一種動物叫","閉眼說出在場每個人今天穿什麼顏色","對著空氣表演求婚","跟在場一人比腕力","用最誇張的方式介紹今天的晚餐","戴著一個東西當帽子直到下一輪","講一個冷笑話，沒人笑就喝","用另一隻手寫自己的名字","大聲說出「我愛伊勢」三次","跟右邊的人交換一個隨身物品到下一輪","表演一個招牌自拍姿勢"];
 const KING_CMDS=["{a} 號和 {b} 號乾杯","{a} 號喝一口","{a} 號說一個真心話","{a} 號模仿 {b} 號","{a} 號和 {b} 號背對背比讚 10 秒","{a} 號誇獎國王三句","{a} 號幫大家倒酒","{a} 號和 {b} 號猜拳，輸的喝","所有偶數號喝一口","{a} 號唱一句歌"];
-const ZOO_TOPICS=["動物園","水果園","日本地名","台灣小吃","便利商店會賣的東西","居酒屋菜單","國家","顏色","交通工具","伊勢志摩看到的東西","飲料","汽車品牌","電器","廚房用品","運動","職業","甜點","日本料理","海鮮","樂器"];
-const M={dice:{n:5,v:[],hidden:true,rolled:false},bomb:{lo:1,hi:100,secret:0,input:"",log:[],boom:false},truth:{kind:"",q:""},king:{players:[...NAMES],roles:{},seen:{},dealt:false,cmd:""},spin:{players:[...NAMES],angle:0,hit:"",busy:false},zoo:{topic:""}};
+const TOPICS=["動物園","水果園","日本地名","台灣小吃","便利商店會賣的東西","居酒屋菜單","國家","顏色","交通工具","伊勢志摩看到的東西","飲料","汽車品牌","電器","廚房用品","運動","職業","甜點","日本料理","海鮮","樂器"];
+const M={dice:{n:5,v:[],hidden:true,rolled:false},bomb:{lo:1,hi:100,secret:0,input:"",log:[],boom:false},truth:{kind:"",q:""},king:{players:[...NAMES],roles:{},seen:{},dealt:false,cmd:""},spin:{players:[...NAMES],angle:0,hit:"",busy:false},tbomb:{state:"idle",topic:"",end:0},cards:{players:[...NAMES],hand:null}};
 function bombReset(){const b=M.bomb;b.lo=1;b.hi=100;b.secret=1+Math.floor(Math.random()*100);b.input="";b.log=[];b.boom=false}
 bombReset();
 function dieHTML(v){const P={1:[5],2:[1,9],3:[1,5,9],4:[1,3,7,9],5:[1,3,5,7,9],6:[1,3,4,6,7,9]}[v];return `<div class="die ${v===1?"one":""}" aria-label="${v} 點">${Array.from({length:9},(_,i)=>P.includes(i+1)?`<i style="grid-area:${Math.floor(i/3)+1}/${i%3+1}"></i>`:"").join("")}</div>`}
 function ruleCard(g){return `<div class="game-card"><div class="label" style="margin-bottom:6px">規則</div><ol class="rules">${g.rules.map(r=>`<li>${esc(r)}</li>`).join("")}</ol><div class="drink">喝酒規則：${esc(g.drink)}</div></div>`}
 function miniHome(){return `<div class="gsec">喝酒小遊戲（一支手機就能玩）</div><div class="mgrid">${MINI.filter(g=>!["spy","nhie","mlt"].includes(g.id)).map(g=>`<button class="mcard" type="button" data-gview="${g.id}"><span class="gicon">${MICON[g.id]}</span><b>${esc(g.name)}</b><small>${esc(g.sub)}</small>${g.app?`<span class="tag2">${esc(g.app)}</span>`:""}</button>`).join("")}</div>
-  <button class="btn" type="button" data-gview="rules" style="width:100%;margin-top:14px;padding:12px;font-size:17px">10 種遊戲規則一覽</button>`}
-function viewRules(){return `<section class="view"><h2 style="margin-top:10px">10 種喝酒遊戲規則</h2><p class="sub">喝酒請適量，不想喝可以用喝水或做一個動作代替。</p>${MINI.map((g,i)=>`<div class="game-card"><h3 style="margin:0 0 6px;font-size:22px">${i+1}. ${esc(g.name)}</h3><ol class="rules">${g.rules.map(r=>`<li>${esc(r)}</li>`).join("")}</ol><div class="drink">喝酒規則：${esc(g.drink)}</div>${g.app?`<button class="btn mini" type="button" data-gview="${g.id}" style="margin-top:10px">打開遊戲</button>`:""}</div>`).join("")}</section>`}
+  <button class="btn" type="button" data-gview="rules" style="width:100%;margin-top:14px;padding:12px;font-size:17px">${MINI.length} 種遊戲規則一覽</button>`}
+function viewRules(){return `<section class="view"><h2 style="margin-top:10px">${MINI.length} 種喝酒遊戲規則</h2><p class="sub">喝酒請適量，不想喝可以用喝水或做一個動作代替。</p>${MINI.map((g,i)=>`<div class="game-card"><h3 style="margin:0 0 6px;font-size:22px">${i+1}. ${esc(g.name)}</h3><ol class="rules">${g.rules.map(r=>`<li>${esc(r)}</li>`).join("")}</ol><div class="drink">喝酒規則：${esc(g.drink)}</div>${g.app?`<button class="btn mini" type="button" data-gview="${g.id}" style="margin-top:10px">打開遊戲</button>`:""}</div>`).join("")}</section>`}
 function viewMini(id){
   const g=MINI.find(x=>x.id===id);let tool="";
   if(id==="dice"){const d=M.dice;const cnt={};d.v.forEach(x=>cnt[x]=(cnt[x]||0)+1);
@@ -1126,9 +1202,27 @@ function viewMini(id){
       <p class="bigq" style="text-align:center;min-height:1.4em" id="spinRes">${w.hit&&!w.busy?esc(w.hit)+"！":""}</p>
       <button class="btn primary" type="button" id="sSpin" style="width:100%;padding:14px;font-size:20px" ${n<2||w.busy?"disabled":""}>轉！</button></div>
       <div class="game-card"><div class="label" style="margin-bottom:8px">在場的人</div><div class="chips">${NAMES.map(p=>`<button type="button" class="chip" data-wp="${p}" aria-pressed="${w.players.includes(p)}">${av(p)}${p}</button>`).join("")}</div></div>`}
-  if(id==="zoo"){tool=`<div class="game-card" style="text-align:center"><div class="label">這一輪的主題</div><p class="bigq">${M.zoo.topic?esc(M.zoo.topic):"＿＿＿"}</p><button class="btn primary" type="button" id="zTopic">給我一個主題</button></div>`}
+  if(id==="tbomb"){const t=M.tbomb;
+    tool=`<div class="game-card" style="text-align:center"><div class="label">主題</div><p class="bigq">${t.topic?esc(t.topic):"＿＿＿"}</p>${t.state!=="run"?`<button class="btn" type="button" id="tbTopic">抽一個主題</button>`:""}</div>
+      ${t.state==="run"?`<div class="tbscreen run"><div class="t1">快傳下去！</div><div class="t2">說一個「${esc(t.topic||"任何東西")}」才能傳</div></div><button class="btn" type="button" id="tbStop" style="width:100%">中止</button>`
+       :t.state==="boom"?`<div class="tbscreen boom" role="alert"><div class="t1">炸彈爆炸！</div><div class="t2">拿著手機的人喝！</div></div><button class="btn primary" type="button" id="tbStart" style="width:100%;padding:14px;font-size:20px">再來一輪</button>`
+       :`<button class="btn primary" type="button" id="tbStart" style="width:100%;padding:16px;font-size:20px">開始（${t.topic?"":"沒抽主題就自由發揮，"}10～45 秒後爆炸）</button>`}`}
+  if(id==="cards"){const c=M.cards;
+    if(!c.hand)tool=`<div class="game-card"><div class="label" style="margin-bottom:8px">誰要玩（${c.players.length} 人）</div><div class="chips">${NAMES.map(n=>`<button type="button" class="chip" data-cp="${n}" aria-pressed="${c.players.includes(n)}">${av(n)}${n}</button>`).join("")}</div>
+      <p class="status" id="cMsg"></p><button class="btn primary" type="button" id="cDeal" style="width:100%;margin-top:12px;padding:14px;font-size:19px">發牌</button></div>`;
+    else{const sorted=c.hand.slice().sort((a,b)=>cardScore(a.card)-cardScore(b.card));const low=sorted[0].name,high=sorted[sorted.length-1].name;
+      tool=`<div class="game-card"><p class="bigq">${esc(low)} 最小，喝！</p><p style="margin:0;font-size:18px">${esc(high)} 最大，可以指定一人陪喝</p>
+      <div class="pcards">${sorted.map(h=>`<div class="pcard ${h.name===low?"low":h.name===high?"high":""}">${av(h.name)}<span>${esc(h.name)}</span>${h.name===low?'<span class="tagx" style="color:var(--accent)">最小</span>':h.name===high?'<span class="tagx" style="color:var(--good)">最大</span>':""}<span class="face ${"♥♦".includes(h.card.s)?"red":""}">${h.card.s}${h.card.r}</span></div>`).join("")}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn primary" type="button" id="cDeal">再發一次</button><button class="btn" type="button" id="cSetup">重新選人</button></div></div>`}}
   return `<section class="view"><h2 style="margin-top:10px">${esc(g.name)}</h2>${tool}${ruleCard(g)}</section>`;
 }
+const RANKS=["2","3","4","5","6","7","8","9","10","J","Q","K","A"],SUITS=["♣","♦","♥","♠"];
+function cardScore(c){return RANKS.indexOf(c.r)*4+SUITS.indexOf(c.s)}
+function dealCards(){const c=M.cards;const deck=[];RANKS.forEach(r=>SUITS.forEach(s=>deck.push({r,s})));for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]]}
+  c.hand=c.players.map((name,i)=>({name,card:deck[i]}))}
+let tbTimer=null;
+function tbStart(){const t=M.tbomb;t.state="run";t.end=Date.now()+(10+Math.random()*35)*1000;clearInterval(tbTimer);
+  tbTimer=setInterval(()=>{if(M.tbomb.state!=="run"){clearInterval(tbTimer);return}if(Date.now()>=M.tbomb.end){clearInterval(tbTimer);M.tbomb.state="boom";try{navigator.vibrate&&navigator.vibrate([400,150,400,150,800])}catch(e){}if(S.view==="game"&&S.gview==="tbomb")render()}},200)}
 function kingDeal(){const k=M.king;const ps=k.players.slice();const sh=ps.slice().sort(()=>Math.random()-.5);k.roles={};sh.forEach((n,i)=>k.roles[n]=i===0?"王":String(i));k.seen={};k.dealt=true;k.cmd="";k.revealed=false}
 function kingShow(n){const k=M.king;const r=k.roles[n];const ov=document.createElement("div");ov.className="reveal";
   ov.innerHTML=`<div class="who">${esc(n)}，確定旁邊沒人在看？</div><button class="btn primary" type="button" id="rv1">顯示我的身分</button>`;document.body.appendChild(ov);
@@ -1138,7 +1232,7 @@ function kingCmd(){const k=M.king;const nums=k.players.length-1;if(nums<1)return
   const pool=nums>1?KING_CMDS:KING_CMDS.filter(c=>!c.includes("{b}"));return pool[Math.floor(Math.random()*pool.length)].replace("{a}",a).replace("{b}",b)}
 document.addEventListener("click",e=>{
   if(S.view!=="game"||!MINI.some(g=>g.id===S.gview&&!["spy","nhie","mlt"].includes(g.id)))return;
-  const t=e.target.closest("[data-dn],#dRoll,#dPeek,#dHide,[data-bk],#bReset,[data-tk],[data-kp],#kDeal,[data-kshow],#kCmd,#kReveal,#kAgain,#kSetup,[data-wp],#sSpin,#zTopic");if(!t)return;
+  const t=e.target.closest("[data-dn],#dRoll,#dPeek,#dHide,[data-bk],#bReset,[data-tk],[data-kp],#kDeal,[data-kshow],#kCmd,#kReveal,#kAgain,#kSetup,[data-wp],#sSpin,#tbTopic,#tbStart,#tbStop,[data-cp],#cDeal,#cSetup");if(!t)return;
   if(t.dataset.dn){M.dice.n=Math.max(1,Math.min(6,M.dice.n+ +t.dataset.dn))}
   else if(t.id==="dRoll"){const d=M.dice;d.v=Array.from({length:d.n},()=>1+Math.floor(Math.random()*6)).sort((a,b)=>a-b);d.rolled=true;d.hidden=true}
   else if(t.id==="dPeek"){M.dice.hidden=false}
@@ -1164,7 +1258,12 @@ document.addEventListener("click",e=>{
     const target=i/n*360;const cur=((w.angle%360)+360)%360;w.angle+=360*4+((target-cur+360)%360);
     const ar=document.getElementById("arrow");if(ar)ar.style.transform=`rotate(${w.angle}deg)`;t.disabled=true;document.getElementById("spinRes").textContent="";
     const reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;setTimeout(()=>{w.busy=false;if(S.view==="game"&&S.gview==="spin")render()},reduce?50:2700);return}
-  else if(t.id==="zTopic"){let q;do{q=ZOO_TOPICS[Math.floor(Math.random()*ZOO_TOPICS.length)]}while(q===M.zoo.topic);M.zoo.topic=q}
+  else if(t.id==="tbTopic"){let q;do{q=TOPICS[Math.floor(Math.random()*TOPICS.length)]}while(q===M.tbomb.topic);M.tbomb.topic=q}
+  else if(t.id==="tbStart"){tbStart()}
+  else if(t.id==="tbStop"){M.tbomb.state="idle";clearInterval(tbTimer)}
+  else if(t.dataset.cp){const c=M.cards,x=t.dataset.cp;c.players=c.players.includes(x)?c.players.filter(y=>y!==x):NAMES.filter(y=>c.players.includes(y)||y===x)}
+  else if(t.id==="cDeal"){if(M.cards.players.length<2){const m=document.getElementById("cMsg");if(m){m.textContent="至少要 2 個人";m.className="status err"}return}dealCards()}
+  else if(t.id==="cSetup"){M.cards.hand=null}
   render();
 });
 
