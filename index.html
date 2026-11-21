@@ -418,6 +418,19 @@ main[data-view="game"] input{font-size:20px;padding:12px}
 .wx .hrs div{flex:1 0 46px;text-align:center;background:var(--bg);border-radius:8px;padding:4px 2px;font-size:13px;line-height:1.35}
 .wx .hrs b{display:block;font:700 15px var(--f-num)}
 .wx .outfit{background:var(--accent-soft);border-radius:10px;padding:10px 12px;margin-top:8px}
+.wx summary{list-style:none;cursor:pointer}
+.wx summary::-webkit-details-marker{display:none}
+.wx .wxs{display:flex;align-items:center;gap:10px}
+.wx .wxs .sl{flex:1;display:flex;flex-wrap:wrap;gap:2px 14px;min-width:0;font-size:15px}
+.wx .si small{color:var(--muted);margin-left:6px;font-size:13px}
+.wx .chev{font-size:20px;color:var(--muted);transition:transform .2s;line-height:1}
+.wx[open] .chev{transform:rotate(180deg)}
+.wx[open] .wxs{padding-bottom:8px;border-bottom:1px solid var(--line);margin-bottom:2px}
+.wx[open] .wxs .sl{visibility:hidden;height:0;overflow:hidden}
+.wx .outfit .oh{display:flex;align-items:center;margin-bottom:0}
+.wx .outfit .oh::after{content:"⌄";margin-left:auto;color:var(--muted);transition:transform .2s}
+.wx .outfit[open] .oh::after{transform:rotate(180deg)}
+.wx .outfit[open] .oh{margin-bottom:6px}
 .wx .outfit .oh{font-weight:700;font-size:16px;margin-bottom:4px}
 .wx .outfit .oh span{font:500 14px var(--f-body);color:var(--muted);margin-left:4px}
 .wx .outfit dl{display:grid;grid-template-columns:44px 1fr;gap:4px 8px;margin:0;font-size:15px}
@@ -1396,7 +1409,7 @@ const WXL={kix:["臨空城",34.4105,135.2951],nara:["奈良",34.6851,135.8430],m
 const WXK=Object.keys(WXL);
 const WXDAY=[["kix"],["nara","mise"],["ise","mise"],["shima","mise"],["ise","namba"],["namba","kix"]];
 const WMO=c=>c===0?["☀️","晴"]:c<=2?["🌤️","晴時多雲"]:c===3?["☁️","陰"]:c<=48?["🌫️","霧"]:c<=57?["🌦️","毛毛雨"]:c<=67?["🌧️","雨"]:c<=77?["🌨️","雪"]:c<=82?["🌧️","陣雨"]:c<=86?["🌨️","陣雪"]:["⛈️","雷雨"];
-S.wx=ls.get("ise.wx",null);S.wxState=S.wx?"ok":"loading";
+S.wx=ls.get("ise.wx",null);S.wxOpen=ls.get("ise.wxOpen",false);S.wxOutfitOpen=ls.get("ise.wxOutfitOpen",false);S.wxState=S.wx?"ok":"loading";
 async function loadWeather(force){
   if(!force&&S.wx&&Date.now()-S.wx.t<20*60e3)return;
   const q=a=>WXK.map(k=>WXL[k][a]).join(",");
@@ -1426,7 +1439,7 @@ function wxOutfit(fs){
   const acc=[];if(lo<=5)acc.push("圍巾或脖圍、薄手套");if(rain>=50)acc.push("雨傘");else if(rain>=30)acc.push("折疊傘");acc.push("好走的鞋");
   L.push(["配件",acc.join("、")]);
   const note=hi-lo>=9?`早晚溫差 ${R(hi-lo)}°，用洋蔥式穿法，外套選拉鍊款，上下車好穿脫。`:"";
-  return `<div class="outfit"><div class="oh">👕 穿衣建議 <span>${R(lo)}°–${R(hi)}°${rain>=30?`．降雨 ${R(rain)}%`:""}</span></div><dl>${L.map(([k,v])=>`<dt>${k}</dt><dd>${esc(v)}</dd>`).join("")}</dl>${note?`<p>${esc(note)}</p>`:""}</div>`;
+  return `<details class="outfit" data-wxt="outfit"${S.wxOutfitOpen?" open":""}><summary class="oh">👕 穿衣建議 <span>${R(lo)}°–${R(hi)}°${rain>=30?`．降雨 ${R(rain)}%`:""}</span></summary><dl>${L.map(([k,v])=>`<dt>${k}</dt><dd>${esc(v)}</dd>`).join("")}</dl>${note?`<p>${esc(note)}</p>`:""}</details>`;
 }
 function wxHTML(){
   const d=DAYS[S.day],keys=WXDAY[S.day]||[];
@@ -1443,9 +1456,11 @@ function wxHTML(){
     return `<div class="loc"><span class="nm">${esc(WXL[k][0])}</span>${now}<div class="fc">${fc}</div>${hrs.length?`<div class="hrs">${hrs.map(h=>`<div>${h.hh}:00<span class="ic" style="display:block;font-size:18px">${WMO(h.c)[0]}</span><b>${R(h.t)}°</b>${R(h.p)}%</div>`).join("")}</div>`:""}</div>`}).join("");
   const outfit=wxOutfit(fs);
   const tm=new Date(S.wx.t),ts=(tm.getMonth()+1)+"/"+tm.getDate()+" "+tm.getHours()+":"+String(tm.getMinutes()).padStart(2,"0");
-  return `<div class="wx" id="wxCard"><div class="wxh"><span class="label">天氣</span><span class="status">即時＋當日預報</span></div>${rows}${outfit}
-  <div class="ft"><p class="note">${S.wxState==="stale"?"離線中，顯示 ":""}${ts} 更新．Open-Meteo</p><button class="btn mini" type="button" id="wxReload">重新整理</button></div></div>`;
+    const sum=keys.map(k=>{const c=S.wx.data[k]&&S.wx.data[k].cur,f=wxDaily(k,d.date);return `<span class="si"><b>${esc(WXL[k][0])}</b> ${c?WMO(c.weather_code)[0]+" "+R(c.temperature_2m)+"°":""}${f?`<small>${R(f.hi)}/${R(f.lo)}°${f.rain>=30?" ☔"+R(f.rain)+"%":""}</small>`:""}</span>`}).join("");
+  return `<details class="wx" id="wxCard" data-wxt="card"${S.wxOpen?" open":""}><summary class="wxs"><span class="label">天氣</span><span class="sl">${sum}</span><span class="chev" aria-hidden="true">⌄</span></summary><div class="wxb">${rows}${outfit}
+  <div class="ft"><p class="note">${S.wxState==="stale"?"離線中，顯示 ":""}${ts} 更新．Open-Meteo</p><button class="btn mini" type="button" id="wxReload">重新整理</button></div></div></details>`;
 }
+document.addEventListener("toggle",e=>{const t=e.target;if(!t.dataset||!t.dataset.wxt)return;if(t.dataset.wxt==="card"){S.wxOpen=t.open;ls.set("ise.wxOpen",t.open)}else{S.wxOutfitOpen=t.open;ls.set("ise.wxOutfitOpen",t.open)}},true);
 document.addEventListener("click",e=>{const t=e.target.closest("#wxReload");if(!t)return;t.textContent="更新中…";loadWeather(true)});
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")loadWeather()});
 setInterval(()=>{if(document.visibilityState==="visible")loadWeather(true)},30*60e3);
