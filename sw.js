@@ -1,5 +1,5 @@
 // Offline cache for the trip pages. The shared ledger (Google Apps Script) is never cached here.
-const CACHE = "ise-trip-v2";
+const CACHE = "ise-trip-v3";
 const FILES = ["./", "index.html", "config.js", "manifest.webmanifest", "./icon-192.png", "./apple-touch-icon.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener("activate", e => {
