@@ -402,6 +402,30 @@ main[data-view="game"] input{font-size:20px;padding:12px}
 
 .stopbtn{width:100%;margin-top:18px;padding:14px;font-size:18px;font-weight:700;border-color:var(--accent);color:var(--accent);background:var(--surface)}
 .stopbtn.sure{background:var(--accent);color:#fff}
+/* 天氣 */
+.wx{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:12px}
+.wx .wxh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px}
+.wx .loc{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:8px 0;border-top:1px solid var(--line)}
+.wx .loc:first-of-type{border-top:none}
+.wx .nm{font-weight:700;font-size:16px}
+.wx .now{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--muted)}
+.wx .now b{font:700 26px var(--f-num);color:var(--ink)}
+.wx .ic{font-size:24px;line-height:1}
+.wx .fc{grid-column:1/-1;font-size:15px}
+.wx .fc .hi{color:var(--accent);font-weight:700}
+.wx .fc .lo{color:#3D6E9E;font-weight:700}
+.wx .hrs{grid-column:1/-1;display:flex;gap:4px;overflow-x:auto;margin-top:4px}
+.wx .hrs div{flex:1 0 46px;text-align:center;background:var(--bg);border-radius:8px;padding:4px 2px;font-size:13px;line-height:1.35}
+.wx .hrs b{display:block;font:700 15px var(--f-num)}
+.wx .outfit{background:var(--accent-soft);border-radius:10px;padding:10px 12px;margin-top:8px}
+.wx .outfit .oh{font-weight:700;font-size:16px;margin-bottom:4px}
+.wx .outfit .oh span{font:500 14px var(--f-body);color:var(--muted);margin-left:4px}
+.wx .outfit dl{display:grid;grid-template-columns:44px 1fr;gap:4px 8px;margin:0;font-size:15px}
+.wx .outfit dt{color:var(--muted);font-weight:700}
+.wx .outfit dd{margin:0}
+.wx .outfit p{font-size:14px;margin:6px 0 0;color:var(--ink)}
+.wx .ft{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px}
+.wx .ft .note{margin:0}
 </style>
 </head>
 <body>
@@ -561,6 +585,7 @@ function viewPlan(){
   <div class="dayhead"><div class="big num">${d.md}</div><div class="meta"><div class="k num">${d.k}</div><div class="t">星期${d.wd}．${esc(d.tag)}</div></div></div>
   <h2 class="daytitle">${esc(d.title)}</h2>
   <div class="facts"><span class="pill car">車程 ${esc(d.drive)}</span><span class="pill">住 ${esc(d.stay)}</span></div>
+  ${wxHTML()}
   <div class="mapwrap"><div id="map" role="region" aria-label="當天地圖"></div>
     <div class="maptools"><p class="note" id="geoNote">點地圖上的數字看景點資訊</p><button class="btn mini" type="button" id="locBtn">📍 我的位置</button></div></div>
   <div class="legend"><span><i style="background:var(--k-flight);border-color:var(--k-flight-line)"></i>航班／巴士</span><span><i style="background:var(--k-car);border-color:var(--k-car-line)"></i>租車</span><span><i style="background:var(--k-stay);border-color:var(--k-stay-line)"></i>住宿</span><span><i style="background:var(--k-food);border-color:var(--k-food-line)"></i>訂位</span><span><i style="background:var(--k-tip);border-color:var(--k-tip-line)"></i>提醒</span></div>
@@ -1365,6 +1390,66 @@ document.getElementById("installBtn").addEventListener("click",async e=>{
   if(deferredPrompt){e.stopImmediatePropagation();document.getElementById("sheet").hidden=true;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null}
 },true);
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
+
+/* ---------- 天氣（Open-Meteo，免金鑰） ---------- */
+const WXL={kix:["臨空城",34.4105,135.2951],nara:["奈良",34.6851,135.8430],mise:["南伊勢",34.3530,136.7030],ise:["伊勢",34.4550,136.7250],shima:["志摩",34.2760,136.8990],namba:["大阪難波",34.6655,135.5010]};
+const WXK=Object.keys(WXL);
+const WXDAY=[["kix"],["nara","mise"],["ise","mise"],["shima","mise"],["ise","namba"],["namba","kix"]];
+const WMO=c=>c===0?["☀️","晴"]:c<=2?["🌤️","晴時多雲"]:c===3?["☁️","陰"]:c<=48?["🌫️","霧"]:c<=57?["🌦️","毛毛雨"]:c<=67?["🌧️","雨"]:c<=77?["🌨️","雪"]:c<=82?["🌧️","陣雨"]:c<=86?["🌨️","陣雪"]:["⛈️","雷雨"];
+S.wx=ls.get("ise.wx",null);S.wxState=S.wx?"ok":"loading";
+async function loadWeather(force){
+  if(!force&&S.wx&&Date.now()-S.wx.t<20*60e3)return;
+  const q=a=>WXK.map(k=>WXL[k][a]).join(",");
+  const url="https://api.open-meteo.com/v1/forecast?latitude="+q(1)+"&longitude="+q(2)+
+    "&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m"+
+    "&hourly=temperature_2m,weather_code,precipitation_probability"+
+    "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max"+
+    "&timezone=Asia%2FTokyo&forecast_days=16";
+  try{const r=await fetch(url);if(!r.ok)throw 0;let j=await r.json();if(!Array.isArray(j))j=[j];
+    const data={};WXK.forEach((k,i)=>{const x=j[i]||{};data[k]={cur:x.current,hourly:x.hourly,daily:x.daily}});
+    S.wx={t:Date.now(),data};S.wxState="ok";ls.set("ise.wx",S.wx)}
+  catch(e){S.wxState=S.wx?"stale":"err"}
+  wxRefreshUI();
+}
+function wxRefreshUI(){if(S.view!=="plan")return;const el=document.getElementById("wxCard");if(el)el.outerHTML=wxHTML()}
+function wxDaily(k,date){const d=S.wx&&S.wx.data[k]&&S.wx.data[k].daily;if(!d||!d.time)return null;const i=d.time.indexOf(date);
+  return i<0?null:{code:d.weather_code[i],hi:d.temperature_2m_max[i],lo:d.temperature_2m_min[i],rain:d.precipitation_probability_max[i]}}
+function wxHours(k,date){const h=S.wx&&S.wx.data[k]&&S.wx.data[k].hourly;if(!h||!h.time)return [];
+  return ["06","09","12","15","18","21"].map(hh=>{const i=h.time.indexOf(date+"T"+hh+":00");return i<0?null:{hh,t:h.temperature_2m[i],c:h.weather_code[i],p:h.precipitation_probability[i]}}).filter(Boolean)}
+function wxOutfit(fs){
+  if(!fs.length)return "";
+  const lo=Math.min(...fs.map(f=>f.lo)),hi=Math.max(...fs.map(f=>f.hi)),rain=Math.max(...fs.map(f=>f.rain||0)),R=Math.round;
+  const L=[];
+  L.push(["內層",hi>=18?"短袖或薄長袖，中午熱可以只穿一件":hi>=12?"薄長袖或發熱衣":"發熱衣＋長袖"]);
+  if(lo<=14)L.push(["中層",lo<=6?"毛衣或刷毛外套":"針織衫或薄刷毛"]);
+  L.push(["外層",lo<=5?"輕羽絨外套，清晨、海邊一定要穿":lo<=10?"防風外套或輕羽絨":lo<=15?"薄外套":"不太需要外套"]);
+  const acc=[];if(lo<=5)acc.push("圍巾或脖圍、薄手套");if(rain>=50)acc.push("雨傘");else if(rain>=30)acc.push("折疊傘");acc.push("好走的鞋");
+  L.push(["配件",acc.join("、")]);
+  const note=hi-lo>=9?`早晚溫差 ${R(hi-lo)}°，用洋蔥式穿法，外套選拉鍊款，上下車好穿脫。`:"";
+  return `<div class="outfit"><div class="oh">👕 穿衣建議 <span>${R(lo)}°–${R(hi)}°${rain>=30?`．降雨 ${R(rain)}%`:""}</span></div><dl>${L.map(([k,v])=>`<dt>${k}</dt><dd>${esc(v)}</dd>`).join("")}</dl>${note?`<p>${esc(note)}</p>`:""}</div>`;
+}
+function wxHTML(){
+  const d=DAYS[S.day],keys=WXDAY[S.day]||[];
+  if(!S.wx)return `<div class="wx" id="wxCard"><div class="wxh"><span class="label">天氣</span></div><p class="status">${S.wxState==="err"?"暫時抓不到天氣，連上網路後再試":"天氣載入中…"}</p>${S.wxState==="err"?'<button class="btn mini" type="button" id="wxReload">重新整理</button>':""}</div>`;
+  const R=v=>v==null?"–":Math.round(v);
+  const fs=[];
+  const rows=keys.map((k,n)=>{const c=S.wx.data[k]&&S.wx.data[k].cur,f=wxDaily(k,d.date);
+    const now=c?`<span class="now"><span class="ic">${WMO(c.weather_code)[0]}</span><b>${R(c.temperature_2m)}°</b><span>現在<br>體感 ${R(c.apparent_temperature)}°</span></span>`:"";
+    let fc;
+    if(f){const w=WMO(f.code);fc=`${esc(d.md)} ${w[0]} ${w[1]}．<span class="hi">${R(f.hi)}°</span> / <span class="lo">${R(f.lo)}°</span>．降雨 ${R(f.rain)}%`;
+      fs.push(f)}
+    else fc=`${esc(d.md)} 的預報還沒出來（出發前 16 天內才有）`;
+    const hrs=n===0&&f?wxHours(k,d.date):[];
+    return `<div class="loc"><span class="nm">${esc(WXL[k][0])}</span>${now}<div class="fc">${fc}</div>${hrs.length?`<div class="hrs">${hrs.map(h=>`<div>${h.hh}:00<span class="ic" style="display:block;font-size:18px">${WMO(h.c)[0]}</span><b>${R(h.t)}°</b>${R(h.p)}%</div>`).join("")}</div>`:""}</div>`}).join("");
+  const outfit=wxOutfit(fs);
+  const tm=new Date(S.wx.t),ts=(tm.getMonth()+1)+"/"+tm.getDate()+" "+tm.getHours()+":"+String(tm.getMinutes()).padStart(2,"0");
+  return `<div class="wx" id="wxCard"><div class="wxh"><span class="label">天氣</span><span class="status">即時＋當日預報</span></div>${rows}${outfit}
+  <div class="ft"><p class="note">${S.wxState==="stale"?"離線中，顯示 ":""}${ts} 更新．Open-Meteo</p><button class="btn mini" type="button" id="wxReload">重新整理</button></div></div>`;
+}
+document.addEventListener("click",e=>{const t=e.target.closest("#wxReload");if(!t)return;t.textContent="更新中…";loadWeather(true)});
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")loadWeather()});
+setInterval(()=>{if(document.visibilityState==="visible")loadWeather(true)},30*60e3);
+loadWeather();
 
 route();
 initDb();
